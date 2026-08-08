@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  name     String
+  email    String @unique
+  password String
+
+  xp     Int @default(0)
+  level  Int @default(1)
+  streak Int @default(0)
+
+  lastActiveDate DateTime?
+
+  achievements Achievement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts           QuestionAttempt[]
+  progress           UserProgress[]
+  generatedQuestions GeneratedQuestion[]
+}
+
+model Course {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+
+  modules Module[]
+
+  createdAt DateTime @default(now())
+}
+
+model Module {
+  id Int @id @default(autoincrement())
+
+  title       String
+  description String?
+
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id])
+
+  topics Topic[]
+
+  createdAt DateTime @default(now())
+}
+
+model Topic {
+  id Int @id @default(autoincrement())
+
+  title       String
+  description String?
+
+  moduleId Int
+  module   Module @relation(fields: [moduleId], references: [id])
+
+  lessons   Lesson[]
+  templates QuestionTemplate[]
+
+  progress UserProgress[]
+
+  createdAt DateTime @default(now())
+}
+
+model Lesson {
+  id Int @id @default(autoincrement())
+
+  title String
+
+  content String @db.Text
+
+  topicId Int
+  topic   Topic @relation(fields: [topicId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model QuestionTemplate {
+  id Int @id @default(autoincrement())
+
+  topicId Int
+  topic   Topic @relation(fields: [topicId], references: [id])
+
+  title String
+
+  templateType String
+
+  difficulty Difficulty
+
+  minValue Int?
+  maxValue Int?
+
+  explanation String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  attempts QuestionAttempt[]
+}
+
+model GeneratedQuestion {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  templateId    Int
+  question      String
+  correctAnswer String
+
+  isAnswered Boolean @default(false)
+
+  attempts QuestionAttempt[]
+
+  createdAt DateTime @default(now())
+}
+
+model QuestionAttempt {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  templateId Int
+  template   QuestionTemplate @relation(fields: [templateId], references: [id])
+
+  generatedQuestion String
+
+  userAnswer    String
+  correctAnswer String
+
+  isCorrect Boolean
+
+  timeTakenSeconds Int?
+
+  createdAt           DateTime           @default(now())
+  GeneratedQuestion   GeneratedQuestion? @relation(fields: [generatedQuestionId], references: [id])
+  generatedQuestionId Int?
+}
+
+model UserProgress {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  topicId Int
+  topic   Topic @relation(fields: [topicId], references: [id])
+
+  mastery Float @default(0)
+
+  completed Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, topicId])
+}
+
+model Achievement {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String
+  earnedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

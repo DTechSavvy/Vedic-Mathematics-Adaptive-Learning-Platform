@@ -1,0 +1,121 @@
+import { EmotionType } from '../../enums/emotion-type.enum';
+
+export const EMOTION_KEYWORDS = {
+
+  [EmotionType.Confused]: [
+
+    "don't understand",
+    "do not understand",
+    "cannot understand",
+    "can't understand",
+    "i don't get it",
+    "i do not get it",
+    "not getting",
+    "confused",
+    "confusing",
+    "unclear",
+    "explain again",
+    "help me understand",
+    "can you explain",
+    "what does this mean",
+    "why",
+    "how",
+    "doubt",
+    "i forgot",
+    "can't remember",
+    "cannot remember",
+    "forgot",
+    "lost",
+    "stuck",
+
+  ],
+
+  [EmotionType.Frustrated]: [
+
+    "always wrong",
+    "wrong again",
+    "mistake",
+    "mistakes",
+    "failed",
+    "failure",
+    "frustrated",
+    "annoyed",
+    "upset",
+    "angry",
+    "boring",
+    "tired",
+    "exhausted",
+    "can't solve",
+    "cannot solve",
+    "not improving",
+    "keep failing",
+    "losing confidence",
+    "i am losing confidence",
+    "i'm losing confidence",
+    "i give up",
+    "giving up",
+    "too difficult",
+    "hopeless",
+
+  ],
+
+  [EmotionType.Curious]: [
+
+    "interesting",
+    "curious",
+    "wonder",
+    "tell me",
+    "teach me",
+    "learn",
+    "know more",
+    "show me",
+    "discover",
+    "explore",
+    "explain",
+    "how does",
+    "why does",
+
+  ],
+
+  [EmotionType.Confident]: [
+
+    "i know",
+    "i understand",
+    "understood",
+    "got it",
+    "easy",
+    "simple",
+    "done",
+    "completed",
+    "finished",
+    "solved",
+    "correct",
+    "i can do it",
+    "i'm confident",
+    "confident",
+
+  ],
+
+  [EmotionType.Motivated]: [
+
+    "improve",
+    "practice",
+    "master",
+    "learn",
+    "become better",
+    "challenge",
+    "next",
+    "keep learning",
+    "improve my speed",
+    "improve my accuracy",
+    "work harder",
+    "stay focused",
+    "keep practicing",
+    "i want to improve",
+    "i want to learn",
+    "i will practice",
+    "help me improve",
+
+  ],
+
+};
