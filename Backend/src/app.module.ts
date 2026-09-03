@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AppService } from './app.service';
@@ -14,9 +15,29 @@ import { ProgressModule } from './progress/progress.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 import { NlpModule } from './nlp/nlp.module';
+import { validateEnvironment } from './config/env.validation';
 
 @Module({
-  imports: [PrismaModule,  AiTutorModule, AuthModule, UsersModule, CourseModule, ModuleModule, TopicModule, LessonModule, QuestionModule, ProgressModule, LeaderboardModule, AchievementModule, NlpModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnvironment,
+      envFilePath: ['.env'],
+    }),
+    PrismaModule,
+    AiTutorModule,
+    AuthModule,
+    UsersModule,
+    CourseModule,
+    ModuleModule,
+    TopicModule,
+    LessonModule,
+    QuestionModule,
+    ProgressModule,
+    LeaderboardModule,
+    AchievementModule,
+    NlpModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

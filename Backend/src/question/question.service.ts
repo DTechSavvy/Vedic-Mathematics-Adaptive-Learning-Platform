@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ExplanationService } from './explanation.service';
 import { AchievementService } from '../achievement/achievement.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -931,6 +931,7 @@ export class QuestionService {
   async submitAnswer(
     questionId: number,
     answer: string,
+    userId: number,
   ) {
     const question =
       await this.prisma.generatedQuestion.findUnique({
@@ -943,6 +944,10 @@ export class QuestionService {
       throw new NotFoundException(
         'Question not found',
       );
+    }
+
+    if (question.userId !== userId) {
+      throw new ForbiddenException('You can only submit answers to your own questions.');
     }
 
     const isCorrect =

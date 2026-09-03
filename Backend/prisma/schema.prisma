@@ -24,6 +24,8 @@ model User {
   name     String
   email    String @unique
   password String
+  googleId String? @unique
+  authProvider String @default("local")
 
   xp     Int @default(0)
   level  Int @default(1)
