@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsString, Max, Min, validateSync } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
 
 class EnvironmentVariables {
   @IsInt()
@@ -20,6 +20,18 @@ class EnvironmentVariables {
 
   @IsString()
   JWT_EXPIRES_IN = '1d';
+
+  @IsOptional()
+  @IsString()
+  GEMINI_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  AI_MODEL_NAME = 'gemini-2.0-flash';
+
+  @IsOptional()
+  @IsInt()
+  AI_PROVIDER_TIMEOUT_MS = 30000;
 }
 
 export function validateEnvironment(config: Record<string, unknown>) {

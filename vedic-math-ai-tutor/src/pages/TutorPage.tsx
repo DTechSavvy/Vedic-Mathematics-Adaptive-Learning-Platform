@@ -150,25 +150,97 @@ export default function TutorPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { role: "user", content: input };
+  const handleSend = async (messageText?: string) => {
+    const textToSend = (messageText || input).trim();
+    if (!textToSend) return;
+
+    const userMsg: Message = { role: "user", content: textToSend };
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
+    if (!messageText) setInput("");
     setIsTyping(true);
+    setSuggestedActions([]);
 
-    // Simulate typing delay
-    setTimeout(() => {
-      const response = getLocalResponse(input);
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("access_token");
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${apiUrl}/ai-tutor/message`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          message: textToSend,
+          conversationId: conversationId || undefined,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.conversationId) {
+          setConversationId(data.conversationId);
+        }
+        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+        if (Array.isArray(data.suggestedActions)) {
+          setSuggestedActions(data.suggestedActions);
+        }
+      } else {
+        // Fallback gracefully if API returned error (e.g., 503 unconfigured or 401 unauthenticated)
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          const localReply = getLocalResponse(textToSend);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `${localReply}\n\n*(Note: Log in to save your tutor conversation history and sync with your personal mastery progress!)*`,
+            },
+          ]);
+        } else if (response.status === 503) {
+          const localReply = getLocalResponse(textToSend);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `${localReply}\n\n*(AI cloud provider is currently offline; providing offline Vedic guidance)*`,
+            },
+          ]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: errorData.message || "I encountered a momentary issue processing that. Please try again.",
+            },
+          ]);
+        }
+      }
+    } catch {
+      // Offline fallback
+      const localReply = getLocalResponse(textToSend);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `${localReply}\n\n*(Serving from offline Vedic math curriculum engine)*`,
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
 
   return (
@@ -183,7 +255,7 @@ export default function TutorPage() {
             <h1 className="font-display font-semibold text-foreground">Vedic AI Tutor</h1>
             <div className="flex items-center gap-1 text-xs text-accent">
               <Sparkles className="h-3 w-3" />
-              <span>Online — ready to help</span>
+              <span>Online — adaptive Vedic guidance</span>
             </div>
           </div>
         </div>
@@ -237,6 +309,26 @@ export default function TutorPage() {
           )}
         </div>
 
+        {/* Suggested Actions */}
+        {suggestedActions.length > 0 && (
+          <div className="flex flex-wrap gap-2 px-6 py-2 border-t border-border/50 bg-background/50">
+            {suggestedActions.map((action, idx) => (
+              <Button
+                key={idx}
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 rounded-full"
+                onClick={() => {
+                  const queryText = action.replace(/_/g, " ").toLowerCase();
+                  handleSend(queryText);
+                }}
+              >
+                ⚡ {action.replace(/_/g, " ")}
+              </Button>
+            ))}
+          </div>
+        )}
+
         {/* Input */}
         <div className="border-t border-border p-4">
           <form
@@ -257,7 +349,7 @@ export default function TutorPage() {
             </Button>
           </form>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            💡 Try: "Teach me Nikhilam" or "How to square 75?"
+            💡 Try: "Teach me Nikhilam" or "Give me a hint for 98 × 97"
           </p>
         </div>
       </div>

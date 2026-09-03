@@ -41,6 +41,7 @@ model User {
   attempts           QuestionAttempt[]
   progress           UserProgress[]
   generatedQuestions GeneratedQuestion[]
+  conversations      TutorConversation[]
 }
 
 model Course {
@@ -80,6 +81,7 @@ model Topic {
   templates QuestionTemplate[]
 
   progress UserProgress[]
+  knowledgeDocs KnowledgeDocument[]
 
   createdAt DateTime @default(now())
 }
@@ -186,3 +188,54 @@ model Achievement {
 
   user User @relation(fields: [userId], references: [id])
 }
+
+model KnowledgeDocument {
+  id          Int      @id @default(autoincrement())
+  topicId     Int?
+  topic       Topic?   @relation(fields: [topicId], references: [id])
+  technique   String?
+  sutra       String?
+  title       String
+  content     String   @db.Text
+  contentType String   @default("concept")
+  tags        String[] @default([])
+  source      String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([topicId])
+  @@index([technique])
+  @@index([sutra])
+}
+
+model TutorConversation {
+  id        String   @id @default(uuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  topicId   Int?
+  moduleId  Int?
+  courseId  Int?
+  title     String?
+  summary   String?  @db.Text
+  startedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  TutorMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model TutorMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   TutorConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String   @db.Text
+  intent         String?
+  mode           String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
