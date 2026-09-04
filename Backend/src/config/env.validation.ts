@@ -27,7 +27,7 @@ class EnvironmentVariables {
 
   @IsOptional()
   @IsString()
-  AI_MODEL_NAME = 'gemini-2.0-flash';
+  AI_MODEL_NAME = 'gemini-3.7-flash';
 
   @IsOptional()
   @IsInt()

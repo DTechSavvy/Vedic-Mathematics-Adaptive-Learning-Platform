@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AiTutorService } from './ai-tutor.service';
 import { SendTutorMessageDto } from './dto/tutor-message.dto';
 import { StructuredTutorResponseDto } from './dto/tutor-response.dto';
-import { StudentProfile } from './interfaces/student-profile.interface';
+import type { StudentProfile } from './interfaces/student-profile.interface';
 import { TutorResponse } from './interfaces/tutor-response.interface';
 import { ConversationService } from './services/conversation.service';
 

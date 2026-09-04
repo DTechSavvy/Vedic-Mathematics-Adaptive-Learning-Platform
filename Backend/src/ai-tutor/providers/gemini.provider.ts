@@ -22,7 +22,7 @@ export class GeminiProvider implements LlmProvider {
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    this.modelName = this.configService.get<string>('AI_MODEL_NAME') || 'gemini-2.0-flash';
+    this.modelName = this.configService.get<string>('AI_MODEL_NAME') || 'gemini-3.7-flash';
     this.timeoutMs = Number(this.configService.get<number>('AI_PROVIDER_TIMEOUT_MS')) || 30000;
 
     // Graceful initialization: Never crash server startup if key is missing!

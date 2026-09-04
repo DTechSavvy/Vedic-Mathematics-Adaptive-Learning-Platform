@@ -1,6 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { KnowledgeResult } from '../interfaces/knowledge-result.interface';
+
+type TopicWithCurriculum = Prisma.TopicGetPayload<{
+  include: {
+    lessons: { take: 1 };
+    templates: { take: 2 };
+  };
+}>;
 
 @Injectable()
 export class KnowledgeService {
@@ -165,7 +173,7 @@ export class KnowledgeService {
     query?: string | null,
   ): Promise<KnowledgeResult | null> {
     try {
-      let topic = null;
+      let topic: TopicWithCurriculum | null = null;
       if (topicId) {
         topic = await this.prisma.topic.findUnique({
           where: { id: topicId },

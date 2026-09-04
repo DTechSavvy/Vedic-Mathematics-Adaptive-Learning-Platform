@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { MathVerificationResult } from './interfaces/math-verification.interface';
 import { SendTutorMessageDto } from './dto/tutor-message.dto';
 import {
   MathFeedback,
@@ -73,7 +74,7 @@ export class AiTutorService {
     const effectiveMode = dto.mode || nlpResult.recommendedMode;
 
     // 3. Deterministic math evaluation / verification
-    let mathVerification = null;
+    let mathVerification: MathVerificationResult | null = null;
     if (nlpResult.mathExpression) {
       mathVerification = this.mathSolverService.verify(
         nlpResult.mathExpression,
@@ -204,7 +205,7 @@ export class AiTutorService {
 
   private calculateSuggestedActions(
     mode: TutorMode,
-    mathVerification?: any,
+    mathVerification?: MathVerificationResult | null,
   ): string[] {
     switch (mode) {
       case TutorMode.HINT:
