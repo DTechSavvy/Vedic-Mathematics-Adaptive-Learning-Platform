@@ -1,9 +1,0 @@
-export enum TutorMode {
-  HINT = 'HINT',
-  GUIDED = 'GUIDED',
-  EXPLAIN = 'EXPLAIN',
-  CHECK_ANSWER = 'CHECK_ANSWER',
-  SOLUTION = 'SOLUTION',
-  PRACTICE = 'PRACTICE',
-  CONCEPT = 'CONCEPT',
-}
