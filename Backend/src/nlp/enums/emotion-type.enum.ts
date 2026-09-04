@@ -1,5 +1,4 @@
 export enum EmotionType {
-
   Confused = 'Confused',
 
   Frustrated = 'Frustrated',
@@ -11,5 +10,4 @@ export enum EmotionType {
   Motivated = 'Motivated',
 
   Neutral = 'Neutral',
-
 }

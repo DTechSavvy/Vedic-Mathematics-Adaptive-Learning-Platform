@@ -38,7 +38,9 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(registerDto.email.toLowerCase());
+    const existingUser = await this.usersService.findByEmail(
+      registerDto.email.toLowerCase(),
+    );
 
     if (existingUser) {
       throw new BadRequestException('Email already exists');
@@ -59,13 +61,18 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.findByEmail(loginDto.email.toLowerCase());
+    const user = await this.usersService.findByEmail(
+      loginDto.email.toLowerCase(),
+    );
 
     if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const validPassword = await bcrypt.compare(loginDto.password, user.password);
+    const validPassword = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
 
     if (!validPassword) {
       throw new UnauthorizedException('Invalid credentials');
@@ -80,7 +87,9 @@ export class AuthService {
     name: string;
   }) {
     const email = profile.email.toLowerCase();
-    const existingGoogleUser = await this.usersService.findByGoogleId(profile.googleId);
+    const existingGoogleUser = await this.usersService.findByGoogleId(
+      profile.googleId,
+    );
 
     if (existingGoogleUser) {
       return this.createAuthResponse(existingGoogleUser);
@@ -90,14 +99,22 @@ export class AuthService {
 
     if (existingUser) {
       if (existingUser.googleId && existingUser.googleId !== profile.googleId) {
-        throw new BadRequestException('This Google account is already linked to another DWANDA user.');
+        throw new BadRequestException(
+          'This Google account is already linked to another DWANDA user.',
+        );
       }
 
-      const updatedUser = await this.usersService.linkGoogleAccount(existingUser.id, profile.googleId);
+      const updatedUser = await this.usersService.linkGoogleAccount(
+        existingUser.id,
+        profile.googleId,
+      );
       return this.createAuthResponse(updatedUser);
     }
 
-    const hashedPassword = await bcrypt.hash(`${profile.googleId}-${Date.now()}`, 12);
+    const hashedPassword = await bcrypt.hash(
+      `${profile.googleId}-${Date.now()}`,
+      12,
+    );
     const createdUser = await this.usersService.createUser({
       name: profile.name,
       email,

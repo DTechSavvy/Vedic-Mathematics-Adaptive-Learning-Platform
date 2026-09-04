@@ -5,12 +5,8 @@ import { AchievementService } from './achievement.service';
 @Module({
   imports: [PrismaModule],
 
-  providers: [
-    AchievementService,
-  ],
+  providers: [AchievementService],
 
-  exports: [
-    AchievementService,
-  ],
+  exports: [AchievementService],
 })
 export class AchievementModule {}

@@ -1,27 +1,25 @@
 export const TOPIC_ALIASES: Record<string, string> = {
+  'base complement': 'Nikhilam',
 
-  "base complement":"Nikhilam",
+  'complement method': 'Nikhilam',
 
-  "complement method":"Nikhilam",
+  'nikhilam method': 'Nikhilam',
 
-  "nikhilam method":"Nikhilam",
+  'vertical multiplication': 'Urdhva Tiryagbhyam',
 
-  "vertical multiplication":"Urdhva Tiryagbhyam",
+  'cross multiplication': 'Urdhva Tiryagbhyam',
 
-  "cross multiplication":"Urdhva Tiryagbhyam",
+  'vertically and crosswise': 'Urdhva Tiryagbhyam',
 
-  "vertically and crosswise":"Urdhva Tiryagbhyam",
+  'all from 9': 'Nikhilam',
 
-  "all from 9":"Nikhilam",
+  'all from nine': 'Nikhilam',
 
-  "all from nine":"Nikhilam",
+  duplex: 'Duplex',
 
-  "duplex":"Duplex",
+  vinculum: 'Vinculum',
 
-  "vinculum":"Vinculum",
+  paravartya: 'Paravartya',
 
-  "paravartya":"Paravartya",
-
-  "ekadhikena":"Ekadhikena",
-
+  ekadhikena: 'Ekadhikena',
 };

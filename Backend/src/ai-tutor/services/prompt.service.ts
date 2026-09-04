@@ -17,7 +17,15 @@ export class PromptService {
     recentHistory: { role: string; content: string }[];
     mathVerification?: MathVerificationResult | null;
   }): LlmRequest {
-    const { studentMessage, nlp, mode, context, knowledge, recentHistory, mathVerification } = params;
+    const {
+      studentMessage,
+      nlp,
+      mode,
+      context,
+      knowledge,
+      recentHistory,
+      mathVerification,
+    } = params;
 
     const systemPrompt = this.buildSystemPrompt(mode, mathVerification);
     const userPrompt = this.buildUserPrompt(
@@ -33,12 +41,16 @@ export class PromptService {
     return {
       systemPrompt,
       userPrompt,
-      temperature: mode === TutorMode.HINT || mode === TutorMode.CHECK_ANSWER ? 0.2 : 0.4,
+      temperature:
+        mode === TutorMode.HINT || mode === TutorMode.CHECK_ANSWER ? 0.2 : 0.4,
       maxTokens: 1200,
     };
   }
 
-  private buildSystemPrompt(mode: TutorMode, mathVerification?: MathVerificationResult | null): string {
+  private buildSystemPrompt(
+    mode: TutorMode,
+    mathVerification?: MathVerificationResult | null,
+  ): string {
     let modeInstructions = '';
 
     switch (mode) {
@@ -135,7 +147,10 @@ ${modeInstructions}`;
 ${
   context.recentMistakes.length > 0
     ? `- Recent Mistake Patterns: ${context.recentMistakes
-        .map((m) => `[Q: ${m.question}, Got: ${m.userAnswer}, Correct: ${m.correctAnswer}]`)
+        .map(
+          (m) =>
+            `[Q: ${m.question}, Got: ${m.userAnswer}, Correct: ${m.correctAnswer}]`,
+        )
         .join('; ')}`
     : ''
 }`);
@@ -160,12 +175,14 @@ ${knowledge
 - Student Answer: ${nlp.studentAnswer || 'None'}
 - Student Struggle Detected: ${nlp.studentDifficulty ? 'Yes' : 'No'}
 ${
-  mathVerification?.parsedResult !== undefined && mathVerification?.parsedResult !== null
+  mathVerification?.parsedResult !== undefined &&
+  mathVerification?.parsedResult !== null
     ? `- Deterministic Computation: ${mathVerification.expression} = ${mathVerification.parsedResult}`
     : ''
 }
 ${
-  mathVerification?.isCorrect !== null && mathVerification?.isCorrect !== undefined
+  mathVerification?.isCorrect !== null &&
+  mathVerification?.isCorrect !== undefined
     ? `- Deterministic Answer Correct: ${mathVerification.isCorrect}`
     : ''
 }`);

@@ -1,47 +1,45 @@
 export const MATH_CONCEPTS = [
+  'algebra',
 
-'algebra',
+  'geometry',
 
-'geometry',
+  'trigonometry',
 
-'trigonometry',
+  'calculus',
 
-'calculus',
+  'arithmetic',
 
-'arithmetic',
+  'fractions',
 
-'fractions',
+  'percentage',
 
-'percentage',
+  'ratio',
 
-'ratio',
+  'proportion',
 
-'proportion',
+  'equation',
 
-'equation',
+  'polynomial',
 
-'polynomial',
+  'identity',
 
-'identity',
+  'factorization',
 
-'factorization',
+  'square',
 
-'square',
+  'cube',
 
-'cube',
+  'root',
 
-'root',
+  'average',
 
-'average',
+  'profit',
 
-'profit',
+  'loss',
 
-'loss',
+  'time',
 
-'time',
+  'speed',
 
-'speed',
-
-'distance',
-
+  'distance',
 ];

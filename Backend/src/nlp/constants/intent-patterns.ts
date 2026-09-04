@@ -1,9 +1,7 @@
 import { IntentType } from '../enums/intent-type.enum';
 
 export const INTENT_PATTERNS: Record<IntentType, string[]> = {
-
   [IntentType.ExplainTopic]: [
-
     'what is',
     'who is',
     'define',
@@ -34,11 +32,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'example of',
     'give example',
     'real life example',
-
   ],
 
   [IntentType.AskDoubt]: [
-
     'why',
     'how',
     'what',
@@ -64,11 +60,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'solve this',
     'check my answer',
     'find my mistake',
-
   ],
 
   [IntentType.NeedPractice]: [
-
     'practice',
     'practice questions',
     'give me questions',
@@ -89,11 +83,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'timed practice',
     'speed test',
     'revision questions',
-
   ],
 
   [IntentType.StudyPlan]: [
-
     'study plan',
     'study next',
     'learn next',
@@ -117,11 +109,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'how should i study',
     'plan my studies',
     'organize my study',
-
   ],
 
   [IntentType.Recommendation]: [
-
     'recommend',
     'recommend me',
     'suggest',
@@ -141,11 +131,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'suggest topic',
     'what is the next step',
     'continue learning',
-
   ],
 
   [IntentType.Greeting]: [
-
     'hello',
     'hi',
     'hey',
@@ -159,11 +147,9 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'thank you',
     'bye',
     'see you',
-
   ],
 
   [IntentType.Motivation]: [
-
     'motivate me',
     'encourage me',
     'boost my confidence',
@@ -185,9 +171,7 @@ export const INTENT_PATTERNS: Record<IntentType, string[]> = {
     'improve my speed',
     'improve my accuracy',
     'keep me motivated',
-
   ],
 
   [IntentType.Unknown]: [],
-
 };

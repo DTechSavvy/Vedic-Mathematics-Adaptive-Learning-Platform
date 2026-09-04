@@ -3,13 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class LeaderboardService {
-
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getLeaderboard() {
-
     return this.prisma.user.findMany({
       select: {
         id: true,

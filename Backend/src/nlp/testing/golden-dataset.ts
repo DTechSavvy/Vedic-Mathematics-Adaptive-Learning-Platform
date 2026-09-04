@@ -8,7 +8,6 @@ import { DifficultyLevel } from '../enums/difficulty-level.enum';
 import { MisconceptionType } from '../enums/misconception-type.enum';
 
 export const GOLDEN_DATASET: GoldenQuery[] = [
-
   // =====================================================
   // Greetings
   // =====================================================
@@ -270,5 +269,4 @@ export const GOLDEN_DATASET: GoldenQuery[] = [
 
     misconception: MisconceptionType.None,
   },
-
 ];

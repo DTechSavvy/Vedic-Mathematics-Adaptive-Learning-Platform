@@ -22,19 +22,29 @@ export class GeminiProvider implements LlmProvider {
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    this.modelName = this.configService.get<string>('AI_MODEL_NAME') || 'gemini-3.7-flash';
-    this.timeoutMs = Number(this.configService.get<number>('AI_PROVIDER_TIMEOUT_MS')) || 30000;
+    this.modelName =
+      this.configService.get<string>('AI_MODEL_NAME') || 'gemini-3.7-flash';
+    this.timeoutMs =
+      Number(this.configService.get<number>('AI_PROVIDER_TIMEOUT_MS')) || 30000;
 
     // Graceful initialization: Never crash server startup if key is missing!
-    if (this.apiKey && this.apiKey.trim() !== '' && !this.apiKey.includes('your-gemini-api-key')) {
+    if (
+      this.apiKey &&
+      this.apiKey.trim() !== '' &&
+      !this.apiKey.includes('your-gemini-api-key')
+    ) {
       try {
         // Dynamic or safe import
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         this.client = new GoogleGenerativeAI(this.apiKey);
-        this.logger.log(`GeminiProvider initialized with model: ${this.modelName}`);
+        this.logger.log(
+          `GeminiProvider initialized with model: ${this.modelName}`,
+        );
       } catch (err: any) {
-        this.logger.warn(`Failed to instantiate GoogleGenerativeAI SDK: ${err.message}`);
+        this.logger.warn(
+          `Failed to instantiate GoogleGenerativeAI SDK: ${err.message}`,
+        );
         this.client = null;
       }
     } else {
@@ -47,9 +57,9 @@ export class GeminiProvider implements LlmProvider {
   isAvailable(): boolean {
     return Boolean(
       this.client &&
-        this.apiKey &&
-        this.apiKey.trim() !== '' &&
-        !this.apiKey.includes('your-gemini-api-key'),
+      this.apiKey &&
+      this.apiKey.trim() !== '' &&
+      !this.apiKey.includes('your-gemini-api-key'),
     );
   }
 
@@ -77,7 +87,12 @@ export class GeminiProvider implements LlmProvider {
 
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(
-          () => reject(new AiProviderTimeoutException(`Gemini request exceeded ${this.timeoutMs}ms`)),
+          () =>
+            reject(
+              new AiProviderTimeoutException(
+                `Gemini request exceeded ${this.timeoutMs}ms`,
+              ),
+            ),
           this.timeoutMs,
         );
       });
@@ -108,10 +123,15 @@ export class GeminiProvider implements LlmProvider {
       // Check if retryable (e.g. rate limit 429, service unavailable 503)
       const isRetryable =
         retriesLeft > 0 &&
-        (err.status === 429 || err.status === 503 || err.message?.includes('429') || err.message?.includes('503'));
+        (err.status === 429 ||
+          err.status === 503 ||
+          err.message?.includes('429') ||
+          err.message?.includes('503'));
 
       if (isRetryable) {
-        this.logger.warn(`Retrying Gemini request after transient error: ${err.message}`);
+        this.logger.warn(
+          `Retrying Gemini request after transient error: ${err.message}`,
+        );
         await new Promise((res) => setTimeout(res, 1000));
         return this.executeWithRetry(request, startTime, retriesLeft - 1);
       }

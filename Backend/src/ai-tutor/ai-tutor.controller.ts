@@ -45,10 +45,7 @@ export class AiTutorController {
    * List recent conversations belonging to the authenticated student
    */
   @Get('conversations')
-  async listConversations(
-    @Request() req: any,
-    @Query('limit') limit?: string,
-  ) {
+  async listConversations(@Request() req: any, @Query('limit') limit?: string) {
     const take = limit ? Math.min(Math.max(Number(limit), 1), 50) : 20;
     return this.conversationService.getUserConversations(req.user.userId, take);
   }
@@ -89,7 +86,9 @@ export class AiTutorController {
     @Request() req: any,
   ) {
     if (req.user.userId !== userId) {
-      throw new ForbiddenException('You can only access your own AI tutor profile.');
+      throw new ForbiddenException(
+        'You can only access your own AI tutor profile.',
+      );
     }
 
     return this.aiTutorService.generateTutorResponseForUser(userId);

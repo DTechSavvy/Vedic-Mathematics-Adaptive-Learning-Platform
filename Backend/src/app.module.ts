@@ -15,6 +15,7 @@ import { ProgressModule } from './progress/progress.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 import { NlpModule } from './nlp/nlp.module';
+import { CurriculumModule } from './curriculum/curriculum.module';
 import { validateEnvironment } from './config/env.validation';
 
 @Module({
@@ -37,6 +38,7 @@ import { validateEnvironment } from './config/env.validation';
     LeaderboardModule,
     AchievementModule,
     NlpModule,
+    CurriculumModule,
   ],
   controllers: [AppController],
   providers: [AppService],

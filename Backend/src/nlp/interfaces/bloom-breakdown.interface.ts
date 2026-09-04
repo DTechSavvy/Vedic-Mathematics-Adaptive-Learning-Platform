@@ -1,5 +1,4 @@
 export interface BloomBreakdown {
-
   rememberScore: number;
 
   understandScore: number;
@@ -11,5 +10,4 @@ export interface BloomBreakdown {
   evaluateScore: number;
 
   createScore: number;
-
 }

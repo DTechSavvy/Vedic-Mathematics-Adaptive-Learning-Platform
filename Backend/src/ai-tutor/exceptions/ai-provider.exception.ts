@@ -5,7 +5,9 @@ import {
 } from '@nestjs/common';
 
 export class AiProviderUnavailableException extends ServiceUnavailableException {
-  constructor(message = 'AI Tutor service is temporarily unavailable. No AI provider is configured.') {
+  constructor(
+    message = 'AI Tutor service is temporarily unavailable. No AI provider is configured.',
+  ) {
     super({
       statusCode: 503,
       error: 'AI_TUTOR_PROVIDER_UNAVAILABLE',

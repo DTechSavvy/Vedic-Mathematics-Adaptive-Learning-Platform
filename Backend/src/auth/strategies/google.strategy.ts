@@ -22,7 +22,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const email = profile.emails?.[0]?.value;
 
     if (!email) {
-      return done(new Error('Google account email is required for DWANDA login.'), false);
+      return done(
+        new Error('Google account email is required for DWANDA login.'),
+        false,
+      );
     }
 
     const user = {

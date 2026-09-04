@@ -1,5 +1,4 @@
 export enum MisconceptionType {
-
   None = 'None',
 
   ConceptGap = 'ConceptGap',
@@ -13,5 +12,4 @@ export enum MisconceptionType {
   RepeatedMistake = 'RepeatedMistake',
 
   Unknown = 'Unknown',
-
 }

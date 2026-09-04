@@ -3,22 +3,11 @@ import { StudentProfile } from '../interfaces/student-profile.interface';
 
 @Injectable()
 export class RecommendationService {
-  async recommendNextTopic(
-    student: StudentProfile,
-  ): Promise<string> {
+  async recommendNextTopic(student: StudentProfile): Promise<string> {
+    if (student.mistakeAnalysis && student.mistakeAnalysis.length > 0) {
+      const latestMistake = student.mistakeAnalysis[0];
 
-    if (
-      student.mistakeAnalysis &&
-      student.mistakeAnalysis.length > 0
-    ) {
-      const latestMistake =
-        student.mistakeAnalysis[0];
-
-      if (
-        latestMistake.includes(
-          'Complement',
-        )
-      ) {
+      if (latestMistake.includes('Complement')) {
         return `
 You appear to be struggling with complement calculations.
 
@@ -30,11 +19,7 @@ Practice 10 complement-finding exercises before attempting full subtraction ques
 `;
       }
 
-      if (
-        latestMistake.includes(
-          'Addition',
-        )
-      ) {
+      if (latestMistake.includes('Addition')) {
         return `
 You are making mistakes in digit-wise addition.
 
@@ -47,10 +32,7 @@ Practice 10 addition questions while focusing on each digit separately.
       }
     }
 
-    if (
-      student.weakTopics &&
-      student.weakTopics.length > 0
-    ) {
+    if (student.weakTopics && student.weakTopics.length > 0) {
       return `
 Focus on improving:
 
@@ -63,15 +45,10 @@ Solve 10-15 additional practice questions in this topic.
 `;
     }
 
-    if (
-      student.strongTopics &&
-      student.strongTopics.length > 0
-    ) {
-      const randomIndex =
-        Math.floor(
-          Math.random() *
-            student.strongTopics.length,
-        );
+    if (student.strongTopics && student.strongTopics.length > 0) {
+      const randomIndex = Math.floor(
+        Math.random() * student.strongTopics.length,
+      );
 
       return `
 You are performing well in:

@@ -241,7 +241,8 @@ export class AiTutorService {
       student.weakTopics[0] || 'general',
       'Can you explain my recent mistakes?',
     );
-    const recommendation = await this.recommendationService.recommendNextTopic(student);
+    const recommendation =
+      await this.recommendationService.recommendNextTopic(student);
     const studyPlan = await this.studyPlannerService.generateStudyPlan(student);
     const motivation = await this.motivationService.generateMotivation(student);
 

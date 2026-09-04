@@ -1,5 +1,4 @@
 export interface ProcessedText {
-
   originalText: string;
 
   cleanedText: string;

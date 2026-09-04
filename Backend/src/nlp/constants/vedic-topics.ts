@@ -1,21 +1,19 @@
 export const VEDIC_TOPICS = [
+  'Nikhilam',
 
-  "Nikhilam",
+  'Urdhva Tiryagbhyam',
 
-  "Urdhva Tiryagbhyam",
+  'Duplex',
 
-  "Duplex",
+  'Vinculum',
 
-  "Vinculum",
+  'Paravartya',
 
-  "Paravartya",
+  'Ekadhikena',
 
-  "Ekadhikena",
+  'Anurupyena',
 
-  "Anurupyena",
+  'Sankalana Vyavakalanabhyam',
 
-  "Sankalana Vyavakalanabhyam",
-
-  "Yavadunam",
-
+  'Yavadunam',
 ];

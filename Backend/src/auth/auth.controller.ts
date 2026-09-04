@@ -49,7 +49,10 @@ export class AuthController {
       return res.redirect(redirectUrl.toString());
     } catch (error) {
       redirectUrl.searchParams.set('google', 'error');
-      redirectUrl.searchParams.set('message', error instanceof Error ? error.message : 'Google login failed');
+      redirectUrl.searchParams.set(
+        'message',
+        error instanceof Error ? error.message : 'Google login failed',
+      );
       return res.redirect(redirectUrl.toString());
     }
   }

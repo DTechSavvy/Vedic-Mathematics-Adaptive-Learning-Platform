@@ -7,7 +7,6 @@ import { ConfidenceBreakdown } from './confidence-breakdown.interface';
 import { ReasoningStep } from './reasoning-step.interface';
 
 export interface IntentClassificationResult {
-
   primaryIntent: IntentType;
 
   secondaryIntent: IntentType | null;
@@ -27,5 +26,4 @@ export interface IntentClassificationResult {
   confidenceBreakdown: ConfidenceBreakdown;
 
   reasoning: ReasoningStep[];
-
 }

@@ -80,7 +80,8 @@ export class TutorContextService {
           ? 0
           : Number(
               (
-                progress.reduce((sum, p) => sum + p.mastery, 0) / progress.length
+                progress.reduce((sum, p) => sum + p.mastery, 0) /
+                progress.length
               ).toFixed(1),
             );
 
@@ -143,7 +144,9 @@ export class TutorContextService {
         conversationSummary,
       };
     } catch (err: any) {
-      this.logger.error(`Error building tutor context for user ${userId}: ${err.message}`);
+      this.logger.error(
+        `Error building tutor context for user ${userId}: ${err.message}`,
+      );
       // Return safe partial context on error so tutor pipeline doesn't break
       return {
         userId,

@@ -33,7 +33,9 @@ export class MathSolverService {
       // Round to 6 decimal places to prevent floating point inaccuracies like 0.000000000000001
       return Math.round(result * 1e6) / 1e6;
     } catch (err: any) {
-      this.logger.debug(`Math parsing error for "${expression}": ${err.message}`);
+      this.logger.debug(
+        `Math parsing error for "${expression}": ${err.message}`,
+      );
       return null;
     }
   }
@@ -41,7 +43,10 @@ export class MathSolverService {
   /**
    * Deterministically verify student answer against evaluated expression
    */
-  verify(expression: string, studentAnswer: string | number | null | undefined): MathVerificationResult {
+  verify(
+    expression: string,
+    studentAnswer: string | number | null | undefined,
+  ): MathVerificationResult {
     const parsedResult = this.evaluate(expression);
 
     if (parsedResult === null) {
@@ -55,7 +60,11 @@ export class MathSolverService {
       };
     }
 
-    if (studentAnswer === null || studentAnswer === undefined || String(studentAnswer).trim() === '') {
+    if (
+      studentAnswer === null ||
+      studentAnswer === undefined ||
+      String(studentAnswer).trim() === ''
+    ) {
       return {
         expression,
         parsedResult,
@@ -133,7 +142,7 @@ export class MathSolverService {
 
       if (/\d/.test(char) || (char === '.' && /\d/.test(expr[i + 1] || ''))) {
         let numStr = '';
-        while (i < expr.length && (/[\d\.]/.test(expr[i]))) {
+        while (i < expr.length && /[\d\.]/.test(expr[i])) {
           numStr += expr[i];
           i++;
         }
@@ -167,7 +176,9 @@ class SafeParser {
   parse(): number {
     const result = this.parseExpression();
     if (this.pos < this.tokens.length) {
-      throw new Error(`Unexpected token at position ${this.pos}: ${JSON.stringify(this.tokens[this.pos])}`);
+      throw new Error(
+        `Unexpected token at position ${this.pos}: ${JSON.stringify(this.tokens[this.pos])}`,
+      );
     }
     return result;
   }
@@ -257,12 +268,18 @@ class SafeParser {
 
     if (token.type === 'SQRT') {
       this.pos++;
-      if (this.pos >= this.tokens.length || this.tokens[this.pos].type !== 'LPAREN') {
+      if (
+        this.pos >= this.tokens.length ||
+        this.tokens[this.pos].type !== 'LPAREN'
+      ) {
         throw new Error('Expected ( after sqrt');
       }
       this.pos++; // skip (
       const inner = this.parseExpression();
-      if (this.pos >= this.tokens.length || this.tokens[this.pos].type !== 'RPAREN') {
+      if (
+        this.pos >= this.tokens.length ||
+        this.tokens[this.pos].type !== 'RPAREN'
+      ) {
         throw new Error('Expected ) after sqrt expression');
       }
       this.pos++; // skip )
@@ -273,7 +290,10 @@ class SafeParser {
     if (token.type === 'LPAREN') {
       this.pos++;
       const result = this.parseExpression();
-      if (this.pos >= this.tokens.length || this.tokens[this.pos].type !== 'RPAREN') {
+      if (
+        this.pos >= this.tokens.length ||
+        this.tokens[this.pos].type !== 'RPAREN'
+      ) {
         throw new Error('Missing closing parenthesis');
       }
       this.pos++; // skip )

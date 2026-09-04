@@ -1,41 +1,39 @@
 export const EDUCATIONAL_VOCABULARY = [
+  'worksheet',
 
-'worksheet',
+  'practice sheet',
 
-'practice sheet',
+  'challenge',
 
-'challenge',
+  'assessment',
 
-'assessment',
+  'difficulty',
 
-'difficulty',
+  'easy',
 
-'easy',
+  'medium',
 
-'medium',
+  'hard',
 
-'hard',
+  'advanced',
 
-'advanced',
+  'beginner',
 
-'beginner',
+  'intermediate',
 
-'intermediate',
+  'personalized',
 
-'personalized',
+  'feedback',
 
-'feedback',
+  'performance',
 
-'performance',
+  'accuracy',
 
-'accuracy',
+  'mastery',
 
-'mastery',
+  'confidence',
 
-'confidence',
+  'score',
 
-'score',
-
-'progress',
-
+  'progress',
 ];

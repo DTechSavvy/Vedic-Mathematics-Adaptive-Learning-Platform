@@ -1,7 +1,6 @@
 import { MisconceptionType } from '../enums/misconception-type.enum';
 
 export const MISCONCEPTION_KEYWORDS: Record<MisconceptionType, string[]> = {
-
   [MisconceptionType.None]: [],
 
   [MisconceptionType.ConceptGap]: [
@@ -57,5 +56,4 @@ export const MISCONCEPTION_KEYWORDS: Record<MisconceptionType, string[]> = {
   ],
 
   [MisconceptionType.Unknown]: [],
-
 };

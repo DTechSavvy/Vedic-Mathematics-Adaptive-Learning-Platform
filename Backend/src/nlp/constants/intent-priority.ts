@@ -1,7 +1,6 @@
 import { IntentType } from '../enums/intent-type.enum';
 
 export const INTENT_PRIORITY: Record<IntentType, number> = {
-
   [IntentType.ExplainTopic]: 100,
 
   [IntentType.AskDoubt]: 95,
@@ -17,5 +16,4 @@ export const INTENT_PRIORITY: Record<IntentType, number> = {
   [IntentType.Greeting]: 20,
 
   [IntentType.Unknown]: 0,
-
 };

@@ -8,7 +8,6 @@ import { NLPAnalytics } from './sections/analytics.interface';
 import { NLPMetadata } from './sections/metadata.interface';
 
 export interface NLPAnalysis {
-
   //---------------------------------
   // Original Input
   //---------------------------------
@@ -62,5 +61,4 @@ export interface NLPAnalysis {
   //---------------------------------
 
   trace: string[];
-
 }

@@ -1,12 +1,22 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { TopicService } from './topic.service';
 
-@Controller('modules')
+@Controller()
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
-  @Get(':id/topics')
-  getTopics(@Param('id') id: string) {
-    return this.topicService.getTopics(Number(id));
+  @Get('modules/:id/topics')
+  getTopics(@Param('id', ParseIntPipe) id: number) {
+    return this.topicService.getTopics(id);
+  }
+
+  @Get('topics/:id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.topicService.findOne(id);
+  }
+
+  @Get('topics/:id/full')
+  findOneWithLessons(@Param('id', ParseIntPipe) id: number) {
+    return this.topicService.findOneWithLessons(id);
   }
 }

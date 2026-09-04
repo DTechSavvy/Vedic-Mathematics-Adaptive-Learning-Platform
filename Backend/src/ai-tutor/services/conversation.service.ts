@@ -41,12 +41,16 @@ export class ConversationService {
       });
 
       if (!existing) {
-        throw new NotFoundException(`Conversation ${conversationId} not found.`);
+        throw new NotFoundException(
+          `Conversation ${conversationId} not found.`,
+        );
       }
 
       // STRICT OWNERSHIP CHECK: A user must NEVER read or continue another user's conversation!
       if (existing.userId !== userId) {
-        throw new ForbiddenException('Access denied: You do not own this conversation.');
+        throw new ForbiddenException(
+          'Access denied: You do not own this conversation.',
+        );
       }
 
       return existing;
@@ -93,7 +97,10 @@ export class ConversationService {
 
       return message;
     } catch (err: any) {
-      this.logger.error(`Failed to persist tutor message: ${err.message}`, err.stack);
+      this.logger.error(
+        `Failed to persist tutor message: ${err.message}`,
+        err.stack,
+      );
       throw err;
     }
   }
@@ -149,7 +156,9 @@ export class ConversationService {
     userId: number,
     messageLimit = 50,
   ) {
-    const conversation = await (this.prisma as any).tutorConversation.findUnique({
+    const conversation = await (
+      this.prisma as any
+    ).tutorConversation.findUnique({
       where: { id: conversationId },
       include: {
         messages: {
@@ -164,7 +173,9 @@ export class ConversationService {
     }
 
     if (conversation.userId !== userId) {
-      throw new ForbiddenException('Access denied: You do not own this conversation.');
+      throw new ForbiddenException(
+        'Access denied: You do not own this conversation.',
+      );
     }
 
     return conversation;

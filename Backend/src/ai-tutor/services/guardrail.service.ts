@@ -21,7 +21,9 @@ export class GuardrailService {
 
     // 2. Cap abnormal output size
     if (content.length > this.MAX_RESPONSE_LENGTH) {
-      this.logger.warn(`Response length ${content.length} exceeded limit. Truncating.`);
+      this.logger.warn(
+        `Response length ${content.length} exceeded limit. Truncating.`,
+      );
       content = content.slice(0, this.MAX_RESPONSE_LENGTH);
       const lastPeriod = content.lastIndexOf('.');
       if (lastPeriod > 1000) {
@@ -33,12 +35,22 @@ export class GuardrailService {
     content = this.sanitizeSensitiveLeaks(content);
 
     // 4. Enforce HINT mode constraint: Never expose the final answer
-    if (params.mode === TutorMode.HINT && params.mathVerification?.parsedResult !== null && params.mathVerification?.parsedResult !== undefined) {
-      content = this.redactFinalAnswerInHintMode(content, params.mathVerification.parsedResult);
+    if (
+      params.mode === TutorMode.HINT &&
+      params.mathVerification?.parsedResult !== null &&
+      params.mathVerification?.parsedResult !== undefined
+    ) {
+      content = this.redactFinalAnswerInHintMode(
+        content,
+        params.mathVerification.parsedResult,
+      );
     }
 
     // 5. Correctness consistency guard in CHECK_ANSWER mode
-    if (params.mode === TutorMode.CHECK_ANSWER && params.mathVerification?.isCorrect === false) {
+    if (
+      params.mode === TutorMode.CHECK_ANSWER &&
+      params.mathVerification?.isCorrect === false
+    ) {
       content = this.enforceIncorrectnessConsistency(content);
     }
 
@@ -65,19 +77,28 @@ export class GuardrailService {
     return sanitized;
   }
 
-  private redactFinalAnswerInHintMode(text: string, finalAnswer: number): string {
+  private redactFinalAnswerInHintMode(
+    text: string,
+    finalAnswer: number,
+  ): string {
     const answerStr = String(finalAnswer);
     // If the answer is a single digit (e.g. 2, 5), full redaction is risky as it might be a step or base.
     // Only redact multi-digit specific answers or explicit answer phrases.
     if (answerStr.length >= 2) {
       const explicitAnswerPatterns = [
-        new RegExp(`(?:the\\s*answer\\s*is|final\\s*answer|gives\\s*us|equals?)\\s*[:=]?\\s*\\b${answerStr}\\b`, 'gi'),
+        new RegExp(
+          `(?:the\\s*answer\\s*is|final\\s*answer|gives\\s*us|equals?)\\s*[:=]?\\s*\\b${answerStr}\\b`,
+          'gi',
+        ),
         new RegExp(`=\\s*\\b${answerStr}\\b`, 'g'),
       ];
 
       for (const pat of explicitAnswerPatterns) {
         if (pat.test(text)) {
-          text = text.replace(pat, 'will lead you right to the final answer! What do you get?');
+          text = text.replace(
+            pat,
+            'will lead you right to the final answer! What do you get?',
+          );
         }
       }
     }
@@ -87,7 +108,11 @@ export class GuardrailService {
 
   private enforceIncorrectnessConsistency(text: string): string {
     // If our deterministic solver verified that the answer is incorrect, but the LLM hallucinated "Correct!":
-    if (/^(?:that's|that\s*is|you\s*are)\s*(?:completely|absolutely)?\s*correct/i.test(text)) {
+    if (
+      /^(?:that's|that\s*is|you\s*are)\s*(?:completely|absolutely)?\s*correct/i.test(
+        text,
+      )
+    ) {
       return text.replace(
         /^(?:that's|that\s*is|you\s*are)\s*(?:completely|absolutely)?\s*correct/i,
         'Let us double check that carefully',

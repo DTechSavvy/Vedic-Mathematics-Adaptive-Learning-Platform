@@ -1,5 +1,4 @@
 export const SPELL_CORRECTIONS: Record<string, string> = {
-
   nikhilm: 'nikhilam',
 
   nikhilammm: 'nikhilam',
@@ -23,5 +22,4 @@ export const SPELL_CORRECTIONS: Record<string, string> = {
   squareroot: 'square root',
 
   sutraaa: 'sutra',
-
 };

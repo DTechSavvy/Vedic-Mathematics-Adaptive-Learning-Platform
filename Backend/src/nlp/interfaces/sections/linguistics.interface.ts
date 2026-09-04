@@ -1,5 +1,4 @@
 export interface NLPLinguistics {
-
   tokens: string[];
 
   correctedTokens: string[];
@@ -19,5 +18,4 @@ export interface NLPLinguistics {
   containsNumbers: boolean;
 
   containsMathExpression: boolean;
-
 }

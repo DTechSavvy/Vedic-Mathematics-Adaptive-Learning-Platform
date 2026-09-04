@@ -1,45 +1,43 @@
 export const MATH_VOCABULARY = [
+  'addition',
+  'subtraction',
+  'multiplication',
+  'division',
 
-'addition',
-'subtraction',
-'multiplication',
-'division',
+  'carry',
+  'borrow',
 
-'carry',
-'borrow',
+  'digit',
+  'digits',
 
-'digit',
-'digits',
+  'number',
+  'numbers',
 
-'number',
-'numbers',
+  'square',
 
-'square',
+  'square root',
 
-'square root',
+  'cube',
 
-'cube',
+  'cube root',
 
-'cube root',
+  'fraction',
 
-'fraction',
+  'fractions',
 
-'fractions',
+  'decimal',
 
-'decimal',
+  'decimals',
 
-'decimals',
+  'percentage',
 
-'percentage',
+  'ratio',
 
-'ratio',
+  'algebra',
 
-'algebra',
+  'geometry',
 
-'geometry',
+  'equation',
 
-'equation',
-
-'expression',
-
+  'expression',
 ];

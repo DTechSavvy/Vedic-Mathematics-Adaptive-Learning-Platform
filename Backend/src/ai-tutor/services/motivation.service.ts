@@ -5,7 +5,9 @@ import { StudentProfile } from '../interfaces/student-profile.interface';
 export class MotivationService {
   async generateMotivation(student: StudentProfile): Promise<string> {
     // Placeholder for AI integration and rule-based logic
-    console.log(`MotivationService: Generating motivation for user ${student.userId}`);
+    console.log(
+      `MotivationService: Generating motivation for user ${student.userId}`,
+    );
 
     const motivations = [
       `Great work, ${student.userId}! Your accuracy is ${student.accuracy}%. Keep it up!`,

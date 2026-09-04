@@ -40,6 +40,12 @@ import { GoldenTestController } from './testing/golden-test.controller';
     GoldenTestService,
   ],
 
-  exports: [NLPService, NLPOrchestratorService, DifficultyAnalyzerService, BloomTaxonomyService, MisconceptionDetectorService],
+  exports: [
+    NLPService,
+    NLPOrchestratorService,
+    DifficultyAnalyzerService,
+    BloomTaxonomyService,
+    MisconceptionDetectorService,
+  ],
 })
 export class NlpModule {}

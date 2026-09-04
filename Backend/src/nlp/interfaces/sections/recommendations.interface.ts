@@ -1,5 +1,4 @@
 export interface NLPRecommendations {
-
   tutorMode: string;
 
   practiceMode: string;
@@ -11,5 +10,4 @@ export interface NLPRecommendations {
   hintLevel: string;
 
   nextAction: string;
-
 }

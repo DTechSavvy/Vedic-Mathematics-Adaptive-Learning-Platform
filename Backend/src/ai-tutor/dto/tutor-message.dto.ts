@@ -1,4 +1,11 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { TutorMode } from '../enums/tutor-mode.enum';
 
 export class SendTutorMessageDto {

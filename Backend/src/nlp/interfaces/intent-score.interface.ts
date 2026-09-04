@@ -1,7 +1,6 @@
 import { IntentType } from '../enums/intent-type.enum';
 
 export interface IntentScore {
-
   intent: IntentType;
 
   score: number;
@@ -9,5 +8,4 @@ export interface IntentScore {
   confidence: number;
 
   reasoning?: string[];
-
 }

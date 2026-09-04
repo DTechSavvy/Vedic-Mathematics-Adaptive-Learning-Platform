@@ -1,37 +1,35 @@
 export const MATH_OPERATIONS = [
+  'add',
 
-'add',
+  'addition',
 
-'addition',
+  'subtract',
 
-'subtract',
+  'subtraction',
 
-'subtraction',
+  'multiply',
 
-'multiply',
+  'multiplication',
 
-'multiplication',
+  'divide',
 
-'divide',
+  'division',
 
-'division',
+  'square',
 
-'square',
+  'cube',
 
-'cube',
+  'root',
 
-'root',
+  'factor',
 
-'factor',
+  'simplify',
 
-'simplify',
+  'solve',
 
-'solve',
+  'calculate',
 
-'calculate',
+  'evaluate',
 
-'evaluate',
-
-'compare',
-
+  'compare',
 ];

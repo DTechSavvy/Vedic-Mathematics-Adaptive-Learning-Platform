@@ -1,21 +1,16 @@
 import { IntentType } from '../enums/intent-type.enum';
 
 export interface IntentSynonym {
-
   intent: IntentType;
 
   words: string[];
-
 }
 
 export const INTENT_SYNONYMS: IntentSynonym[] = [
-
   {
-
     intent: IntentType.ExplainTopic,
 
     words: [
-
       'teach',
       'learning',
       'learn',
@@ -38,17 +33,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'examples',
       'demonstrate',
       'show',
-
     ],
-
   },
 
   {
-
     intent: IntentType.NeedPractice,
 
     words: [
-
       'practice',
       'exercise',
       'exercises',
@@ -68,17 +59,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'problems',
       'challenge',
       'revision',
-
     ],
-
   },
 
   {
-
     intent: IntentType.Recommendation,
 
     words: [
-
       'recommend',
       'recommendation',
       'suggest',
@@ -92,17 +79,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'continue',
       'path',
       'direction',
-
     ],
-
   },
 
   {
-
     intent: IntentType.StudyPlan,
 
     words: [
-
       'plan',
       'planning',
       'roadmap',
@@ -114,17 +97,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'timeline',
       'preparation',
       'prepare',
-
     ],
-
   },
 
   {
-
     intent: IntentType.Motivation,
 
     words: [
-
       'motivate',
       'motivation',
       'encourage',
@@ -139,17 +118,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'focus',
       'discipline',
       'consistent',
-
     ],
-
   },
 
   {
-
     intent: IntentType.AskDoubt,
 
     words: [
-
       'why',
       'how',
       'question',
@@ -165,17 +140,13 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'issue',
       'problem',
       'stuck',
-
     ],
-
   },
 
   {
-
     intent: IntentType.Greeting,
 
     words: [
-
       'hello',
       'hi',
       'hey',
@@ -185,9 +156,6 @@ export const INTENT_SYNONYMS: IntentSynonym[] = [
       'thank',
       'goodbye',
       'bye',
-
     ],
-
   },
-
 ];

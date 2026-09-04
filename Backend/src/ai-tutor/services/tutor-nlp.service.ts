@@ -14,27 +14,56 @@ const VEDIC_MAPPINGS: VedicMapping[] = [
   {
     technique: 'Nikhilam',
     sutra: 'Nikhilam Navatashcaramam Dashatah',
-    keywords: ['nikhilam', 'all from 9', 'last from 10', 'base method', 'deficiency', 'surplus'],
+    keywords: [
+      'nikhilam',
+      'all from 9',
+      'last from 10',
+      'base method',
+      'deficiency',
+      'surplus',
+    ],
   },
   {
     technique: 'Urdhva Tiryagbhyam',
     sutra: 'Urdhva Tiryagbhyam',
-    keywords: ['urdhva', 'tiryagbhyam', 'vertically and crosswise', 'vertical and crosswise', 'crosswise'],
+    keywords: [
+      'urdhva',
+      'tiryagbhyam',
+      'vertically and crosswise',
+      'vertical and crosswise',
+      'crosswise',
+    ],
   },
   {
     technique: 'Ekadhikena Purvena',
     sutra: 'Ekadhikena Purvena',
-    keywords: ['ekadhikena', 'purvena', 'by one more than the previous', 'ending in 5', 'square ending 5'],
+    keywords: [
+      'ekadhikena',
+      'purvena',
+      'by one more than the previous',
+      'ending in 5',
+      'square ending 5',
+    ],
   },
   {
     technique: 'Paravartya Yojayet',
     sutra: 'Paravartya Yojayet',
-    keywords: ['paravartya', 'yojayet', 'transpose and apply', 'division near base'],
+    keywords: [
+      'paravartya',
+      'yojayet',
+      'transpose and apply',
+      'division near base',
+    ],
   },
   {
     technique: 'Yavadunam',
     sutra: 'Yavadunam Tavadunikritya Varganca Yojayet',
-    keywords: ['yavadunam', 'by the deficiency', 'squaring near base', 'cube near base'],
+    keywords: [
+      'yavadunam',
+      'by the deficiency',
+      'squaring near base',
+      'cube near base',
+    ],
   },
   {
     technique: 'Dwandwa Yoga',
@@ -54,7 +83,12 @@ const VEDIC_MAPPINGS: VedicMapping[] = [
   {
     technique: 'Sankalana Vyavakalanabhyam',
     sutra: 'Sankalana Vyavakalanabhyam',
-    keywords: ['sankalana', 'vyavakalanabhyam', 'by addition and by subtraction', 'simultaneous equations'],
+    keywords: [
+      'sankalana',
+      'vyavakalanabhyam',
+      'by addition and by subtraction',
+      'simultaneous equations',
+    ],
   },
 ];
 
@@ -62,7 +96,10 @@ const VEDIC_MAPPINGS: VedicMapping[] = [
 export class TutorNlpService {
   constructor(private readonly nlpService: NLPService) {}
 
-  async process(text: string, requestedMode?: TutorMode): Promise<TutorNlpResult> {
+  async process(
+    text: string,
+    requestedMode?: TutorMode,
+  ): Promise<TutorNlpResult> {
     const normalizedInput = text.trim();
     const lower = normalizedInput.toLowerCase();
 
@@ -82,7 +119,10 @@ export class TutorNlpService {
     const studentAnswer = this.extractStudentAnswer(normalizedInput);
 
     // 4. Identify Vedic technique & sutra
-    const { technique, sutra } = this.extractVedicTechnique(normalizedInput, coreNlp);
+    const { technique, sutra } = this.extractVedicTechnique(
+      normalizedInput,
+      coreNlp,
+    );
 
     // 5. Detect student difficulty / struggle
     const studentDifficulty = this.detectDifficulty(lower, coreNlp);
@@ -107,7 +147,9 @@ export class TutorNlpService {
     if (technique) entities.push(technique);
     if (sutra) entities.push(sutra);
 
-    const detectedTopic = coreNlp?.semantics?.topic?.topic || (technique ? 'Vedic Mathematics' : null);
+    const detectedTopic =
+      coreNlp?.semantics?.topic?.topic ||
+      (technique ? 'Vedic Mathematics' : null);
 
     return {
       rawText: normalizedInput,
@@ -184,10 +226,13 @@ export class TutorNlpService {
     }
 
     // Check NLP entities
-    const extractedTechs: string[] = coreNlp?.semantics?.entities?.techniques || [];
+    const extractedTechs: string[] =
+      coreNlp?.semantics?.entities?.techniques || [];
     if (extractedTechs.length > 0) {
       const tech = extractedTechs[0];
-      const found = VEDIC_MAPPINGS.find((m) => m.technique.toLowerCase() === tech.toLowerCase());
+      const found = VEDIC_MAPPINGS.find(
+        (m) => m.technique.toLowerCase() === tech.toLowerCase(),
+      );
       return {
         technique: tech,
         sutra: found?.sutra || null,
@@ -381,10 +426,18 @@ export class TutorNlpService {
     if (coreNlp?.semantics?.intent?.intent) {
       const nlpIntent = coreNlp.semantics.intent.intent;
       if (nlpIntent === 'NeedPractice') {
-        return { intent: TutorIntent.PRACTICE_REQUEST, mode: TutorMode.PRACTICE, confidence: 0.75 };
+        return {
+          intent: TutorIntent.PRACTICE_REQUEST,
+          mode: TutorMode.PRACTICE,
+          confidence: 0.75,
+        };
       }
       if (nlpIntent === 'AskDoubt' || nlpIntent === 'ExplainTopic') {
-        return { intent: TutorIntent.ASK_CONCEPT, mode: TutorMode.EXPLAIN, confidence: 0.75 };
+        return {
+          intent: TutorIntent.ASK_CONCEPT,
+          mode: TutorMode.EXPLAIN,
+          confidence: 0.75,
+        };
       }
     }
 

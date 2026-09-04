@@ -1,7 +1,5 @@
 export interface IntentKeyword {
+  keyword: string;
 
-    keyword:string;
-
-    weight:number;
-
+  weight: number;
 }

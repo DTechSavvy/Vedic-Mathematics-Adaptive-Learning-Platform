@@ -1,31 +1,29 @@
 export const VEDIC_TECHNIQUES = [
+  'nikhilam',
 
-'nikhilam',
+  'urdhva',
 
-'urdhva',
+  'tiryagbhyam',
 
-'tiryagbhyam',
+  'duplex',
 
-'duplex',
+  'paravartya',
 
-'paravartya',
+  'ekadhikena',
 
-'ekadhikena',
+  'anurupyena',
 
-'anurupyena',
+  'sankalana',
 
-'sankalana',
+  'vyavakalanam',
 
-'vyavakalanam',
+  'gunanam',
 
-'gunanam',
+  'division',
 
-'division',
+  'multiplication',
 
-'multiplication',
+  'subtraction',
 
-'subtraction',
-
-'addition',
-
+  'addition',
 ];

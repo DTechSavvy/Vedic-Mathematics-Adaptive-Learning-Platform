@@ -10,23 +10,15 @@ import { LEARNING_GOAL_KEYWORDS } from '../constants/learning-goal-keywords';
 
 @Injectable()
 export class LearningGoalDetectorService {
-
-  detectGoal(
-
-    processed: ProcessedText,
-
-  ): LearningGoalResult {
-
+  detectGoal(processed: ProcessedText): LearningGoalResult {
     const scores = new Map<LearningGoal, number>();
 
     const evidence = new Map<LearningGoal, string[]>();
 
-    Object.values(LearningGoal).forEach(goal => {
-
+    Object.values(LearningGoal).forEach((goal) => {
       scores.set(goal, 0);
 
       evidence.set(goal, []);
-
     });
 
     //------------------------
@@ -34,21 +26,15 @@ export class LearningGoalDetectorService {
     //------------------------
 
     for (const goal of Object.values(LearningGoal)) {
-
       const keywords = LEARNING_GOAL_KEYWORDS[goal] || [];
 
       for (const token of processed.filteredTokens) {
-
         if (keywords.includes(token)) {
-
           scores.set(goal, scores.get(goal)! + 2);
 
           evidence.get(goal)!.push(token);
-
         }
-
       }
-
     }
 
     //------------------------
@@ -56,21 +42,15 @@ export class LearningGoalDetectorService {
     //------------------------
 
     for (const goal of Object.values(LearningGoal)) {
-
       const keywords = LEARNING_GOAL_KEYWORDS[goal] || [];
 
       for (const bigram of processed.bigrams) {
-
         if (keywords.includes(bigram)) {
-
           scores.set(goal, scores.get(goal)! + 4);
 
           evidence.get(goal)!.push(bigram);
-
         }
-
       }
-
     }
 
     //------------------------
@@ -78,171 +58,108 @@ export class LearningGoalDetectorService {
     //------------------------
 
     for (const goal of Object.values(LearningGoal)) {
-
       const keywords = LEARNING_GOAL_KEYWORDS[goal] || [];
 
       for (const trigram of processed.trigrams) {
-
         if (keywords.includes(trigram)) {
-
           scores.set(goal, scores.get(goal)! + 6);
 
           evidence.get(goal)!.push(trigram);
-
         }
-
       }
-
     }
-    
+
     //------------------------
-// Contextual Goal Boost
-//------------------------
+    // Contextual Goal Boost
+    //------------------------
 
-const sentence =
-processed.correctedTokens.join(' ');
+    const sentence = processed.correctedTokens.join(' ');
 
-//------------------
-// Concept Learning
-//------------------
+    //------------------
+    // Concept Learning
+    //------------------
 
-if (
+    if (
+      TextMatcher.matchesPhrase(sentence, 'understand') ||
+      TextMatcher.matchesPhrase(sentence, 'learn') ||
+      TextMatcher.matchesPhrase(sentence, 'concept') ||
+      TextMatcher.matchesPhrase(sentence, 'meaning') ||
+      TextMatcher.matchesPhrase(sentence, 'explain')
+    ) {
+      scores.set(
+        LearningGoal.ConceptUnderstanding,
 
-  TextMatcher.matchesPhrase(sentence, 'understand') ||
+        scores.get(LearningGoal.ConceptUnderstanding)! + 4,
+      );
+    }
 
-  TextMatcher.matchesPhrase(sentence, 'learn') ||
+    //------------------
+    // Practice
+    //------------------
 
-  TextMatcher.matchesPhrase(sentence, 'concept') ||
+    if (
+      TextMatcher.matchesPhrase(sentence, 'practice') ||
+      TextMatcher.matchesPhrase(sentence, 'exercise') ||
+      TextMatcher.matchesPhrase(sentence, 'solve') ||
+      TextMatcher.matchesPhrase(sentence, 'problem')
+    ) {
+      scores.set(
+        LearningGoal.SkillPractice,
 
-  TextMatcher.matchesPhrase(sentence, 'meaning') ||
+        scores.get(LearningGoal.SkillPractice)! + 4,
+      );
+    }
 
-  TextMatcher.matchesPhrase(sentence, 'explain')
+    //------------------
+    // Planning
+    //------------------
 
-){
+    if (
+      TextMatcher.matchesPhrase(sentence, 'plan') ||
+      TextMatcher.matchesPhrase(sentence, 'schedule') ||
+      TextMatcher.matchesPhrase(sentence, 'organize') ||
+      TextMatcher.matchesPhrase(sentence, 'time management')
+    ) {
+      scores.set(
+        LearningGoal.StudyPlanning,
 
-scores.set(
+        scores.get(LearningGoal.StudyPlanning)! + 4,
+      );
+    }
 
-LearningGoal.ConceptUnderstanding,
+    //------------------
+    // Recommendation
+    //------------------
 
-scores.get(
-LearningGoal.ConceptUnderstanding,
-)!+4,
+    if (
+      TextMatcher.matchesPhrase(sentence, 'recommend') ||
+      TextMatcher.matchesPhrase(sentence, 'best') ||
+      TextMatcher.matchesPhrase(sentence, 'which') ||
+      TextMatcher.matchesPhrase(sentence, 'suggest')
+    ) {
+      scores.set(
+        LearningGoal.Recommendation,
 
-);
+        scores.get(LearningGoal.Recommendation)! + 4,
+      );
+    }
 
-}
+    //------------------
+    // Motivation
+    //------------------
 
-//------------------
-// Practice
-//------------------
+    if (
+      TextMatcher.matchesPhrase(sentence, 'improve') ||
+      TextMatcher.matchesPhrase(sentence, 'confidence') ||
+      TextMatcher.matchesPhrase(sentence, 'better') ||
+      TextMatcher.matchesPhrase(sentence, 'motivate')
+    ) {
+      scores.set(
+        LearningGoal.Motivation,
 
-if (
-
-TextMatcher.matchesPhrase(sentence, 'practice') ||
-
-TextMatcher.matchesPhrase(sentence, 'exercise') ||
-
-TextMatcher.matchesPhrase(sentence, 'solve') ||
-
-TextMatcher.matchesPhrase(sentence, 'problem') 
-
-){
-
-scores.set(
-
-LearningGoal.SkillPractice,
-
-scores.get(
-LearningGoal.SkillPractice,
-)!+4,
-
-);
-
-}
-
-//------------------
-// Planning
-//------------------
-
-if (
-
-TextMatcher.matchesPhrase(sentence, 'plan') ||
-
-TextMatcher.matchesPhrase(sentence, 'schedule') ||
-
-TextMatcher.matchesPhrase(sentence, 'organize') ||
-
-TextMatcher.matchesPhrase(sentence, 'time management') 
-
-){
-
-scores.set(
-
-LearningGoal.StudyPlanning,
-
-scores.get(
-LearningGoal.StudyPlanning,
-)!+4,
-
-);
-
-}
-
-//------------------
-// Recommendation
-//------------------
-
-if (
-
-TextMatcher.matchesPhrase(sentence, 'recommend') ||
-
-TextMatcher.matchesPhrase(sentence, 'best') ||
-
-TextMatcher.matchesPhrase(sentence, 'which') ||
-
-TextMatcher.matchesPhrase(sentence, 'suggest')
-
-){
-
-scores.set(
-
-LearningGoal.Recommendation,
-
-scores.get(
-LearningGoal.Recommendation,
-)!+4,
-
-);
-
-}
-
-//------------------
-// Motivation
-//------------------
-
-if (
-
-TextMatcher.matchesPhrase(sentence, 'improve') ||
-
-TextMatcher.matchesPhrase(sentence, 'confidence') ||
-
-TextMatcher.matchesPhrase(sentence, 'better') ||
-
-TextMatcher.matchesPhrase(sentence, 'motivate') 
-
-){
-
-scores.set(
-
-LearningGoal.Motivation,
-
-scores.get(
-LearningGoal.Motivation,
-)!+4,
-
-);
-
-}
+        scores.get(LearningGoal.Motivation)! + 4,
+      );
+    }
 
     //------------------------
     // Best Goal
@@ -253,41 +170,27 @@ LearningGoal.Motivation,
     let highestScore = 0;
 
     for (const [goal, score] of scores.entries()) {
-
       if (score > highestScore) {
-
         highestScore = score;
 
         bestGoal = goal;
-
       }
-
     }
 
-    const confidence =
+    const confidence = Number(
+      Math.min(
+        highestScore / 10,
 
-      Number(
+        1,
+      ).toFixed(2),
+    );
 
-        Math.min(
-
-          highestScore / 10,
-
-          1,
-
-        ).toFixed(2),
-
-      );
-
-    return{
-
-      goal:bestGoal,
+    return {
+      goal: bestGoal,
 
       confidence,
 
-      evidence:evidence.get(bestGoal)!,
-
+      evidence: evidence.get(bestGoal)!,
     };
-
   }
-
 }

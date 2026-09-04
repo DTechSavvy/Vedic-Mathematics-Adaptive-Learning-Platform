@@ -13,7 +13,10 @@ type TopicWithCurriculum = Prisma.TopicGetPayload<{
 @Injectable()
 export class KnowledgeService {
   private readonly logger = new Logger(KnowledgeService.name);
-  private readonly cache = new Map<string, { data: KnowledgeResult[]; expiresAt: number }>();
+  private readonly cache = new Map<
+    string,
+    { data: KnowledgeResult[]; expiresAt: number }
+  >();
   private readonly CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache for stable curriculum data
 
   constructor(private readonly prisma: PrismaService) {}
@@ -21,12 +24,15 @@ export class KnowledgeService {
   /**
    * Main knowledge retrieval method based on context and extracted NLP entities
    */
-  async retrieveRelevant(params: {
-    topicId?: number | null;
-    technique?: string | null;
-    sutra?: string | null;
-    query?: string | null;
-  }, limit = 4): Promise<KnowledgeResult[]> {
+  async retrieveRelevant(
+    params: {
+      topicId?: number | null;
+      technique?: string | null;
+      sutra?: string | null;
+      query?: string | null;
+    },
+    limit = 4,
+  ): Promise<KnowledgeResult[]> {
     const cacheKey = `rel:${params.topicId || ''}:${params.technique || ''}:${params.sutra || ''}:${params.query || ''}:${limit}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) return cached;
@@ -47,7 +53,10 @@ export class KnowledgeService {
 
     // 2. If sutra specified, retrieve by sutra
     if (params.sutra && results.length < limit) {
-      const bySutra = await this.findBySutra(params.sutra, limit - results.length);
+      const bySutra = await this.findBySutra(
+        params.sutra,
+        limit - results.length,
+      );
       for (const item of bySutra) {
         if (!seenIds.has(item.id)) {
           seenIds.add(item.id);
@@ -58,7 +67,10 @@ export class KnowledgeService {
 
     // 3. If topicId specified, retrieve by topic
     if (params.topicId && results.length < limit) {
-      const byTopic = await this.findByTopic(params.topicId, limit - results.length);
+      const byTopic = await this.findByTopic(
+        params.topicId,
+        limit - results.length,
+      );
       for (const item of byTopic) {
         if (!seenIds.has(item.id)) {
           seenIds.add(item.id);
@@ -69,7 +81,10 @@ export class KnowledgeService {
 
     // 4. Keyword search if still have capacity
     if (params.query && results.length < limit) {
-      const byQuery = await this.searchKnowledge(params.query, limit - results.length);
+      const byQuery = await this.searchKnowledge(
+        params.query,
+        limit - results.length,
+      );
       for (const item of byQuery) {
         if (!seenIds.has(item.id)) {
           seenIds.add(item.id);
@@ -80,7 +95,10 @@ export class KnowledgeService {
 
     // 5. Fallback: If no KnowledgeDocument found yet, extract curriculum from Topic & Lesson models
     if (results.length === 0 && (params.topicId || params.query)) {
-      const fallback = await this.retrieveCurriculumFallback(params.topicId, params.query);
+      const fallback = await this.retrieveCurriculumFallback(
+        params.topicId,
+        params.query,
+      );
       if (fallback) {
         results.push(fallback);
       }
@@ -90,7 +108,10 @@ export class KnowledgeService {
     return results;
   }
 
-  async findByTechnique(technique: string, limit = 5): Promise<KnowledgeResult[]> {
+  async findByTechnique(
+    technique: string,
+    limit = 5,
+  ): Promise<KnowledgeResult[]> {
     try {
       const docs = await (this.prisma as any).knowledgeDocument.findMany({
         where: {
@@ -104,7 +125,9 @@ export class KnowledgeService {
 
       return docs.map(this.mapToResult);
     } catch (err: any) {
-      this.logger.debug(`Error querying KnowledgeDocument by technique: ${err.message}`);
+      this.logger.debug(
+        `Error querying KnowledgeDocument by technique: ${err.message}`,
+      );
       return [];
     }
   }
@@ -123,7 +146,9 @@ export class KnowledgeService {
 
       return docs.map(this.mapToResult);
     } catch (err: any) {
-      this.logger.debug(`Error querying KnowledgeDocument by sutra: ${err.message}`);
+      this.logger.debug(
+        `Error querying KnowledgeDocument by sutra: ${err.message}`,
+      );
       return [];
     }
   }
@@ -137,7 +162,9 @@ export class KnowledgeService {
 
       return docs.map(this.mapToResult);
     } catch (err: any) {
-      this.logger.debug(`Error querying KnowledgeDocument by topicId: ${err.message}`);
+      this.logger.debug(
+        `Error querying KnowledgeDocument by topicId: ${err.message}`,
+      );
       return [];
     }
   }
@@ -203,7 +230,9 @@ export class KnowledgeService {
 
       const content = [
         topic.description ? `Overview: ${topic.description}` : '',
-        topic.lessons.length > 0 ? `Lesson content: ${topic.lessons[0].content}` : '',
+        topic.lessons.length > 0
+          ? `Lesson content: ${topic.lessons[0].content}`
+          : '',
         explanations ? `Method explanation: ${explanations}` : '',
       ]
         .filter(Boolean)

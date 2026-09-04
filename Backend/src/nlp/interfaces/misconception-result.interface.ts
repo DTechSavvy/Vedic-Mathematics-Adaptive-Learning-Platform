@@ -2,7 +2,6 @@ import { MisconceptionType } from '../enums/misconception-type.enum';
 import { MisconceptionBreakdown } from './misconception-breakdown.interface';
 
 export interface MisconceptionResult {
-
   type: MisconceptionType;
 
   confidence: number;
@@ -12,5 +11,4 @@ export interface MisconceptionResult {
   matchedKeywords: string[];
 
   reasoning: string[];
-
 }

@@ -1,47 +1,45 @@
-export const STOP_WORDS=[
+export const STOP_WORDS = [
+  'the',
 
-"the",
+  'is',
 
-"is",
+  'am',
 
-"am",
+  'are',
 
-"are",
+  'was',
 
-"was",
+  'were',
 
-"were",
+  'to',
 
-"to",
+  'of',
 
-"of",
+  'in',
 
-"in",
+  'on',
 
-"on",
+  'for',
 
-"for",
+  'a',
 
-"a",
+  'an',
 
-"an",
+  'please',
 
-"please",
+  'kindly',
 
-"kindly",
+  'can',
 
-"can",
+  'could',
 
-"could",
+  'would',
 
-"would",
+  'should',
 
-"should",
+  'you',
 
-"you",
+  'me',
 
-"me",
-
-"my",
-
+  'my',
 ];

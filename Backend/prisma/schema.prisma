@@ -48,6 +48,8 @@ model Course {
   id          Int     @id @default(autoincrement())
   title       String
   description String?
+  order       Int     @default(0)
+  status      String  @default("active")
 
   modules Module[]
 
@@ -59,6 +61,8 @@ model Module {
 
   title       String
   description String?
+  order       Int        @default(0)
+  difficulty  Difficulty?
 
   courseId Int
   course   Course @relation(fields: [courseId], references: [id])
@@ -71,8 +75,15 @@ model Module {
 model Topic {
   id Int @id @default(autoincrement())
 
-  title       String
-  description String?
+  title              String
+  description        String?
+  order              Int          @default(0)
+  difficulty         Difficulty?
+  learningObjectives String[]     @default([])
+  sutra              String?
+  subSutra           String?
+  technique          String?
+  estimatedMinutes   Int?
 
   moduleId Int
   module   Module @relation(fields: [moduleId], references: [id])
@@ -80,7 +91,7 @@ model Topic {
   lessons   Lesson[]
   templates QuestionTemplate[]
 
-  progress UserProgress[]
+  progress      UserProgress[]
   knowledgeDocs KnowledgeDocument[]
 
   createdAt DateTime @default(now())
@@ -89,14 +100,50 @@ model Topic {
 model Lesson {
   id Int @id @default(autoincrement())
 
-  title String
-
-  content String @db.Text
+  title              String
+  description        String?
+  content            String   @db.Text
+  order              Int      @default(0)
+  difficulty         Difficulty @default(EASY)
+  learningObjectives String[] @default([])
+  explanation        String?  @db.Text
+  steps              Json?
+  sutra              String?
+  subSutra           String?
+  technique          String?
+  method             String?
+  estimatedMinutes   Int?
 
   topicId Int
   topic   Topic @relation(fields: [topicId], references: [id])
 
+  prerequisiteLessonId Int?
+  prerequisiteLesson   Lesson?  @relation("LessonPrerequisite", fields: [prerequisiteLessonId], references: [id])
+  dependentLessons     Lesson[] @relation("LessonPrerequisite")
+
+  examples LessonExample[]
+
   createdAt DateTime @default(now())
+}
+
+model LessonExample {
+  id Int @id @default(autoincrement())
+
+  lessonId    Int
+  lesson      Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  question    String
+  solution    String   @db.Text
+  explanation String?  @db.Text
+  difficulty  Difficulty @default(EASY)
+  order       Int      @default(0)
+  sutra       String?
+  technique   String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([lessonId])
 }
 
 model QuestionTemplate {
@@ -215,7 +262,7 @@ model TutorConversation {
   user      User     @relation(fields: [userId], references: [id])
   topicId   Int?
   moduleId  Int?
-  courseId  Int?
+  courseId   Int?
   title     String?
   summary   String?  @db.Text
   startedAt DateTime @default(now())
@@ -238,4 +285,3 @@ model TutorMessage {
 
   @@index([conversationId, createdAt])
 }
-

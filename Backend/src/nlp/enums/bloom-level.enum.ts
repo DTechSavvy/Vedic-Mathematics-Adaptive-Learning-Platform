@@ -1,5 +1,4 @@
 export enum BloomLevel {
-
   Remember = 'Remember',
 
   Understand = 'Understand',
@@ -13,5 +12,4 @@ export enum BloomLevel {
   Create = 'Create',
 
   Unknown = 'Unknown',
-
 }

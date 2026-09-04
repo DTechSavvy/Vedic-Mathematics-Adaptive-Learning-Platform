@@ -5,7 +5,6 @@ import { LearningGoalResult } from '../learning-goal-result.interface';
 import { EntityResult } from '../entity-result.interface';
 
 export interface NLPSemantics {
-
   intent: IntentClassificationResult;
 
   topic: TopicResult;
@@ -15,5 +14,4 @@ export interface NLPSemantics {
   learningGoal: LearningGoalResult;
 
   entities: EntityResult;
-
 }

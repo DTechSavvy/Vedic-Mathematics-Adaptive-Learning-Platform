@@ -6,17 +6,11 @@ import { GOLDEN_DATASET } from './golden-dataset';
 
 @Injectable()
 export class GoldenTestService {
-
   private readonly logger = new Logger(GoldenTestService.name);
 
-  constructor(
-
-    private readonly orchestrator: NLPOrchestratorService,
-
-  ) {}
+  constructor(private readonly orchestrator: NLPOrchestratorService) {}
 
   async run(): Promise<void> {
-
     let intentCorrect = 0;
     let topicCorrect = 0;
     let emotionCorrect = 0;
@@ -30,79 +24,63 @@ export class GoldenTestService {
     this.logger.log(`Running ${total} Golden Dataset Tests...\n`);
 
     for (const sample of GOLDEN_DATASET) {
-
       const result = await this.orchestrator.analyze(sample.input);
 
       //-------------------------
       // Intent
       //-------------------------
 
-      const predictedIntent =
-        result.semantics.intent.primaryIntent;
+      const predictedIntent = result.semantics.intent.primaryIntent;
 
-      if (predictedIntent === sample.intent)
-        intentCorrect++;
+      if (predictedIntent === sample.intent) intentCorrect++;
 
       //-------------------------
       // Topic
       //-------------------------
 
-      const predictedTopic =
-        result.semantics.topic.topic;
+      const predictedTopic = result.semantics.topic.topic;
 
-      if (predictedTopic === sample.topic)
-        topicCorrect++;
+      if (predictedTopic === sample.topic) topicCorrect++;
 
       //-------------------------
       // Emotion
       //-------------------------
 
-      const predictedEmotion =
-        result.semantics.emotion.emotion;
+      const predictedEmotion = result.semantics.emotion.emotion;
 
-      if (predictedEmotion === sample.emotion)
-        emotionCorrect++;
+      if (predictedEmotion === sample.emotion) emotionCorrect++;
 
       //-------------------------
       // Learning Goal
       //-------------------------
 
-      const predictedGoal =
-        result.semantics.learningGoal.goal;
+      const predictedGoal = result.semantics.learningGoal.goal;
 
-      if (predictedGoal === sample.goal)
-        goalCorrect++;
+      if (predictedGoal === sample.goal) goalCorrect++;
 
       //-------------------------
       // Bloom
       //-------------------------
 
-      const predictedBloom =
-        result.pedagogy.bloom.level;
+      const predictedBloom = result.pedagogy.bloom.level;
 
-      if (predictedBloom === sample.bloom)
-        bloomCorrect++;
+      if (predictedBloom === sample.bloom) bloomCorrect++;
 
       //-------------------------
       // Difficulty
       //-------------------------
 
-      const predictedDifficulty =
-        result.pedagogy.difficulty.difficulty;
+      const predictedDifficulty = result.pedagogy.difficulty.difficulty;
 
-      if (predictedDifficulty === sample.difficulty)
-        difficultyCorrect++;
+      if (predictedDifficulty === sample.difficulty) difficultyCorrect++;
 
       //-------------------------
       // Misconception
       //-------------------------
 
-      const predictedMisconception =
-        result.pedagogy.misconception.type;
+      const predictedMisconception = result.pedagogy.misconception.type;
 
-      if (
-        predictedMisconception === sample.misconception
-      )
+      if (predictedMisconception === sample.misconception)
         misconceptionCorrect++;
 
       //-------------------------
@@ -110,23 +88,15 @@ export class GoldenTestService {
       //-------------------------
 
       const failed =
-
         predictedIntent !== sample.intent ||
-
         predictedTopic !== sample.topic ||
-
         predictedEmotion !== sample.emotion ||
-
         predictedGoal !== sample.goal ||
-
         predictedBloom !== sample.bloom ||
-
         predictedDifficulty !== sample.difficulty ||
-
         predictedMisconception !== sample.misconception;
 
       if (failed) {
-
         this.logger.warn('====================================');
 
         this.logger.warn(`INPUT`);
@@ -136,7 +106,6 @@ export class GoldenTestService {
         this.logger.warn('EXPECTED');
 
         this.logger.warn({
-
           intent: sample.intent,
 
           topic: sample.topic,
@@ -150,13 +119,11 @@ export class GoldenTestService {
           difficulty: sample.difficulty,
 
           misconception: sample.misconception,
-
         });
 
         this.logger.warn('PREDICTED');
 
         this.logger.warn({
-
           intent: predictedIntent,
 
           topic: predictedTopic,
@@ -170,11 +137,8 @@ export class GoldenTestService {
           difficulty: predictedDifficulty,
 
           misconception: predictedMisconception,
-
         });
-
       }
-
     }
 
     //-------------------------
@@ -216,7 +180,5 @@ export class GoldenTestService {
     );
 
     this.logger.log('=========================================');
-
   }
-
 }

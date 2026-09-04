@@ -1,5 +1,4 @@
 export interface MisconceptionBreakdown {
-
   conceptGapScore: number;
 
   conceptConfusionScore: number;
@@ -9,5 +8,4 @@ export interface MisconceptionBreakdown {
   calculationErrorScore: number;
 
   repeatedMistakeScore: number;
-
 }

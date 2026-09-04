@@ -2,7 +2,6 @@ import { IntentType } from '../enums/intent-type.enum';
 import { IntentKeyword } from '../interfaces/intent-keyword.interface';
 
 export const INTENT_KEYWORDS: Record<IntentType, IntentKeyword[]> = {
-
   [IntentType.ExplainTopic]: [
     { keyword: 'explain', weight: 5 },
     { keyword: 'teach', weight: 4 },

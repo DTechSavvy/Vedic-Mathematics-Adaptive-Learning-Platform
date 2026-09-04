@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExplanationService {
-
-  generateAdditionExplanation(
-    num1: number,
-    num2: number,
-  ) {
+  generateAdditionExplanation(num1: number, num2: number) {
     const units1 = num1 % 10;
     const units2 = num2 % 10;
 
@@ -15,765 +11,620 @@ export class ExplanationService {
 
     const unitSum = units1 + units2;
 
-    const carry =
-      Math.floor(unitSum / 10);
+    const carry = Math.floor(unitSum / 10);
 
-    const unitDigit =
-      unitSum % 10;
+    const unitDigit = unitSum % 10;
 
-    const tensSum =
-      tens1 + tens2 + carry;
+    const tensSum = tens1 + tens2 + carry;
 
     return {
-     steps: [
-      `${units1} + ${units2} = ${unitSum}`,
-      `Write ${unitDigit} and carry ${carry}`,
-      `${tens1} + ${tens2} + ${carry} = ${tensSum}`,
-      `Final Answer = ${tensSum}${unitDigit}`,
-     ],
+      steps: [
+        `${units1} + ${units2} = ${unitSum}`,
+        `Write ${unitDigit} and carry ${carry}`,
+        `${tens1} + ${tens2} + ${carry} = ${tensSum}`,
+        `Final Answer = ${tensSum}${unitDigit}`,
+      ],
 
-     visual: {
-      type: 'vertical_addition',
+      visual: {
+        type: 'vertical_addition',
 
-       num1,
+        num1,
 
-       num2,
+        num2,
 
-       carry,
+        carry,
 
-       answer: Number(
-        `${tensSum}${unitDigit}`,
-        ),
+        answer: Number(`${tensSum}${unitDigit}`),
       },
     };
   }
-  generateNikhilamExplanation(
-  base: number,
-  number: number,
-) {
-  const digits =
-    number.toString().split('');
+  generateNikhilamExplanation(base: number, number: number) {
+    const digits = number.toString().split('');
 
-  const steps: string[] = [];
+    const steps: string[] = [];
 
-  let answer = '';
+    let answer = '';
 
-  for (
-    let i = 0;
-    i < digits.length;
-    i++
-  ) {
-    const digit =
-      Number(digits[i]);
+    for (let i = 0; i < digits.length; i++) {
+      const digit = Number(digits[i]);
 
-    if (
-      i === digits.length - 1
-    ) {
-      const value =
-        10 - digit;
+      if (i === digits.length - 1) {
+        const value = 10 - digit;
 
-      steps.push(
-        `10 - ${digit} = ${value}`,
-      );
+        steps.push(`10 - ${digit} = ${value}`);
 
-      answer += value;
-    } else {
-      const value =
-        9 - digit;
+        answer += value;
+      } else {
+        const value = 9 - digit;
 
-      steps.push(
-        `9 - ${digit} = ${value}`,
-      );
+        steps.push(`9 - ${digit} = ${value}`);
 
-      answer += value;
+        answer += value;
+      }
     }
+
+    steps.push(`Answer = ${answer}`);
+
+    return {
+      steps,
+
+      visual: {
+        type: 'nikhilam_subtraction',
+
+        base,
+
+        number,
+
+        answer: Number(answer),
+      },
+    };
   }
+  generateDotMethodExplanation(num1: number, num2: number) {
+    const answer = num1 + num2;
 
-  steps.push(
-    `Answer = ${answer}`,
-  );
+    return {
+      steps: [
+        `Write ${num1} and ${num2} vertically`,
+        `Add corresponding digits`,
+        `Use dots to track carry values`,
+        `Final Answer = ${answer}`,
+      ],
 
-  return {
-    steps,
+      visual: {
+        type: 'dot_method_addition',
 
-    visual: {
-      type:
-        'nikhilam_subtraction',
+        num1,
 
-      base,
+        num2,
 
-      number,
+        answer,
+      },
+    };
+  }
+  generateBaseMultiplicationExplanation(num1: number, num2: number) {
+    const base = 100;
 
-      answer:
-        Number(answer),
-    },
-  };
- }
- generateDotMethodExplanation(
-  num1: number,
-  num2: number,
-) {
-  const answer =
-    num1 + num2;
+    const deficiency1 = base - num1;
 
-  return {
-    steps: [
-      `Write ${num1} and ${num2} vertically`,
-      `Add corresponding digits`,
-      `Use dots to track carry values`,
-      `Final Answer = ${answer}`,
-    ],
+    const deficiency2 = base - num2;
 
-    visual: {
-      type: 'dot_method_addition',
+    const leftPart = num1 - deficiency2;
 
-      num1,
+    const rightPart = deficiency1 * deficiency2;
 
-      num2,
+    const answer = num1 * num2;
 
-      answer,
-    },
-  };
- }
- generateBaseMultiplicationExplanation(
-  num1: number,
-  num2: number,
-) {
-  const base = 100;
+    return {
+      steps: [
+        `Base = ${base}`,
 
-  const deficiency1 =
-    base - num1;
+        `${num1} is ${deficiency1} less than ${base}`,
 
-  const deficiency2 =
-    base - num2;
+        `${num2} is ${deficiency2} less than ${base}`,
 
-  const leftPart =
-    num1 - deficiency2;
+        `${num1} - ${deficiency2} = ${leftPart}`,
 
-  const rightPart =
-    deficiency1 *
-    deficiency2;
+        `${deficiency1} × ${deficiency2} = ${rightPart}`,
 
-  const answer =
-    num1 * num2;
+        `Answer = ${answer}`,
+      ],
 
-  return {
-    steps: [
-      `Base = ${base}`,
+      visual: {
+        type: 'base_multiplication',
 
-      `${num1} is ${deficiency1} less than ${base}`,
+        base,
 
-      `${num2} is ${deficiency2} less than ${base}`,
+        num1,
 
-      `${num1} - ${deficiency2} = ${leftPart}`,
+        num2,
 
-      `${deficiency1} × ${deficiency2} = ${rightPart}`,
+        deficiency1,
 
-      `Answer = ${answer}`,
-    ],
+        deficiency2,
 
-    visual: {
-      type:
-        'base_multiplication',
+        leftPart,
 
-      base,
+        rightPart,
 
-      num1,
+        answer,
+      },
+    };
+  }
+  generateUrdhvaExplanation(num1: number, num2: number) {
+    const a = Math.floor(num1 / 10);
 
-      num2,
+    const b = num1 % 10;
 
-      deficiency1,
+    const c = Math.floor(num2 / 10);
 
-      deficiency2,
+    const d = num2 % 10;
 
-      leftPart,
+    const vertical = b * d;
 
-      rightPart,
+    const cross = a * d + b * c;
 
-      answer,
-    },
-  };
- }
- generateUrdhvaExplanation(
-  num1: number,
-  num2: number,
-) {
-  const a =
-    Math.floor(num1 / 10);
+    const left = a * c;
 
-  const b =
-    num1 % 10;
+    const answer = num1 * num2;
 
-  const c =
-    Math.floor(num2 / 10);
+    return {
+      steps: [
+        `${b} × ${d} = ${vertical}`,
 
-  const d =
-    num2 % 10;
+        `${a} × ${d} + ${b} × ${c} = ${cross}`,
 
-  const vertical =
-    b * d;
+        `${a} × ${c} = ${left}`,
 
-  const cross =
-    a * d +
-    b * c;
+        `Answer = ${answer}`,
+      ],
 
-  const left =
-    a * c;
+      visual: {
+        type: 'urdhva_multiplication',
 
-  const answer =
-    num1 * num2;
+        num1,
 
-  return {
-    steps: [
-      `${b} × ${d} = ${vertical}`,
+        num2,
 
-      `${a} × ${d} + ${b} × ${c} = ${cross}`,
+        vertical,
 
-      `${a} × ${c} = ${left}`,
+        cross,
 
-      `Answer = ${answer}`,
-    ],
+        left,
 
-    visual: {
-      type:
-        'urdhva_multiplication',
+        answer,
+      },
+    };
+  }
+  generateSeriesOnesExplanation(number: number) {
+    const digits = number.toString().split('').map(Number);
 
-      num1,
+    const a = digits[0];
+    const b = digits[1];
+    const c = digits[2];
 
-      num2,
+    const step1 = a;
 
-      vertical,
+    const step2 = a + b;
 
-      cross,
+    const step3 = b + c;
 
-      left,
+    const step4 = c;
 
-      answer,
-    },
-  };
- }
- generateSeriesOnesExplanation(
-  number: number,
-) {
-  const digits =
-    number
-      .toString()
-      .split('')
-      .map(Number);
+    const answer = number * 111;
 
-  const a = digits[0];
-  const b = digits[1];
-  const c = digits[2];
+    return {
+      steps: [
+        `First digit = ${a}`,
 
-  const step1 = a;
+        `${a} + ${b} = ${step2}`,
 
-  const step2 = a + b;
+        `${b} + ${c} = ${step3}`,
 
-  const step3 = b + c;
+        `Last digit = ${c}`,
 
-  const step4 = c;
+        `Answer = ${answer}`,
+      ],
 
-  const answer =
-    number * 111;
+      visual: {
+        type: 'series_ones_multiplication',
 
-  return {
-    steps: [
-      `First digit = ${a}`,
+        number,
 
-      `${a} + ${b} = ${step2}`,
+        step1,
 
-      `${b} + ${c} = ${step3}`,
+        step2,
 
-      `Last digit = ${c}`,
+        step3,
 
-      `Answer = ${answer}`,
-    ],
+        step4,
 
-    visual: {
-      type:
-        'series_ones_multiplication',
+        answer,
+      },
+    };
+  }
+  generateSeriesNinesExplanation(number: number) {
+    const left = number - 1;
 
-      number,
+    const right = 1000 - number;
 
-      step1,
+    const answer = number * 999;
 
-      step2,
+    return {
+      steps: [
+        `${number} - 1 = ${left}`,
 
-      step3,
+        `1000 - ${number} = ${right}`,
 
-      step4,
+        `Combine ${left} and ${right}`,
 
-      answer,
-    },
-  };
- }
- generateSeriesNinesExplanation(
-  number: number,
-) {
-  const left =
-    number - 1;
+        `Answer = ${answer}`,
+      ],
 
-  const right =
-    1000 - number;
+      visual: {
+        type: 'series_nines_multiplication',
 
-  const answer =
-    number * 999;
+        number,
 
-  return {
-    steps: [
-      `${number} - 1 = ${left}`,
+        left,
 
-      `1000 - ${number} = ${right}`,
+        right,
 
-      `Combine ${left} and ${right}`,
+        answer,
+      },
+    };
+  }
+  generateSquareEndingFiveExplanation(number: number) {
+    const prefix = Math.floor(number / 10);
 
-      `Answer = ${answer}`,
-    ],
+    const left = prefix * (prefix + 1);
 
-    visual: {
-      type:
-        'series_nines_multiplication',
+    const answer = number * number;
 
-      number,
+    return {
+      steps: [
+        `Take ${prefix}`,
 
-      left,
+        `${prefix} × ${prefix + 1} = ${left}`,
 
-      right,
+        `Append 25`,
 
-      answer,
-    },
-  };
- }
- generateSquareEndingFiveExplanation(
-  number: number,
-) {
-  const prefix =
-    Math.floor(number / 10);
+        `Answer = ${answer}`,
+      ],
 
-  const left =
-    prefix *
-    (prefix + 1);
+      visual: {
+        type: 'square_ending_five',
 
-  const answer =
-    number * number;
+        number,
 
-  return {
-    steps: [
-      `Take ${prefix}`,
+        prefix,
 
-      `${prefix} × ${
-        prefix + 1
-      } = ${left}`,
+        left,
 
-      `Append 25`,
+        answer,
+      },
+    };
+  }
+  generateSquareBaseExplanation(number: number) {
+    const base = 100;
 
-      `Answer = ${answer}`,
-    ],
+    const deficiency = base - number;
 
-    visual: {
-      type:
-        'square_ending_five',
+    const left = number - deficiency;
 
-      number,
+    const right = deficiency * deficiency;
 
-      prefix,
+    const answer = number * number;
 
-      left,
+    return {
+      steps: [
+        `Base = ${base}`,
 
-      answer,
-    },
-  };
- }
- generateSquareBaseExplanation(
-  number: number,
-) {
-  const base = 100;
+        `${number} is ${deficiency} less than ${base}`,
 
-  const deficiency =
-    base - number;
+        `${number} - ${deficiency} = ${left}`,
 
-  const left =
-    number - deficiency;
+        `${deficiency}² = ${right}`,
 
-  const right =
-    deficiency * deficiency;
+        `Answer = ${answer}`,
+      ],
 
-  const answer =
-    number * number;
+      visual: {
+        type: 'square_base_method',
 
-  return {
-    steps: [
-      `Base = ${base}`,
+        number,
 
-      `${number} is ${deficiency} less than ${base}`,
+        base,
 
-      `${number} - ${deficiency} = ${left}`,
+        deficiency,
 
-      `${deficiency}² = ${right}`,
+        left,
 
-      `Answer = ${answer}`,
-    ],
+        right,
 
-    visual: {
-      type:
-        'square_base_method',
+        answer,
+      },
+    };
+  }
+  generateDwandwaExplanation(number: number) {
+    const a = Math.floor(number / 10);
 
-      number,
+    const b = number % 10;
 
-      base,
+    const duplex1 = b * b;
 
-      deficiency,
+    const duplex2 = 2 * a * b;
 
-      left,
+    const duplex3 = a * a;
 
-      right,
+    const answer = number * number;
 
-      answer,
-    },
-  };
- }
- generateDwandwaExplanation(
-  number: number,
-) {
-  const a =
-    Math.floor(number / 10);
+    return {
+      steps: [
+        `Duplex(${b}) = ${duplex1}`,
 
-  const b =
-    number % 10;
+        `Duplex(${a}, ${b}) = 2 × ${a} × ${b} = ${duplex2}`,
 
-  const duplex1 =
-    b * b;
+        `Duplex(${a}) = ${duplex3}`,
 
-  const duplex2 =
-    2 * a * b;
+        `Answer = ${answer}`,
+      ],
 
-  const duplex3 =
-    a * a;
+      visual: {
+        type: 'dwandwa_yoga',
 
-  const answer =
-    number * number;
+        number,
 
-  return {
-    steps: [
-      `Duplex(${b}) = ${duplex1}`,
+        duplex1,
 
-      `Duplex(${a}, ${b}) = 2 × ${a} × ${b} = ${duplex2}`,
+        duplex2,
 
-      `Duplex(${a}) = ${duplex3}`,
+        duplex3,
 
-      `Answer = ${answer}`,
-    ],
+        answer,
+      },
+    };
+  }
+  generateCubeExplanation(number: number) {
+    const base = 100;
 
-    visual: {
-      type:
-        'dwandwa_yoga',
+    const deviation = number - base;
 
-      number,
+    const square = deviation * deviation;
 
-      duplex1,
+    const cube = deviation * deviation * deviation;
 
-      duplex2,
+    const answer = Math.pow(number, 3);
 
-      duplex3,
+    return {
+      steps: [
+        `Base = ${base}`,
 
-      answer,
-    },
-  };
- }
- generateCubeExplanation(
-  number: number,
-) {
-  const base = 100;
+        `${number} differs from ${base} by ${deviation}`,
 
-  const deviation =
-    number - base;
+        `${deviation}² = ${square}`,
 
-  const square =
-    deviation * deviation;
+        `${deviation}³ = ${cube}`,
 
-  const cube =
-    deviation * deviation * deviation;
+        `Final Cube = ${answer}`,
+      ],
 
-  const answer =
-    Math.pow(number, 3);
+      visual: {
+        type: 'yavadunam_cube',
 
-  return {
-    steps: [
-      `Base = ${base}`,
+        number,
 
-      `${number} differs from ${base} by ${deviation}`,
+        base,
 
-      `${deviation}² = ${square}`,
+        deviation,
 
-      `${deviation}³ = ${cube}`,
+        square,
 
-      `Final Cube = ${answer}`,
-    ],
+        cube,
 
-    visual: {
-      type:
-        'yavadunam_cube',
+        answer,
+      },
+    };
+  }
+  generateRootTwoExplanation() {
+    return {
+      steps: [
+        '√2 is an irrational number',
 
-      number,
+        'Its decimal expansion never ends',
 
-      base,
+        'A commonly used approximation is 1.4142',
 
-      deviation,
+        'Therefore √2 ≈ 1.4142',
+      ],
 
-      square,
+      visual: {
+        type: 'square_root_two',
 
-      cube,
+        approximation: '1.4142',
+      },
+    };
+  }
+  generateFractionAdditionExplanation(
+    numerator1: number,
+    numerator2: number,
+    denominator: number,
+  ) {
+    const result = numerator1 + numerator2;
 
-      answer,
-    },
-  };
- }
- generateRootTwoExplanation() {
-  return {
-    steps: [
-      '√2 is an irrational number',
+    return {
+      steps: [
+        `Denominators are same (${denominator})`,
 
-      'Its decimal expansion never ends',
+        `Add numerators: ${numerator1} + ${numerator2} = ${result}`,
 
-      'A commonly used approximation is 1.4142',
+        `Keep denominator ${denominator}`,
 
-      'Therefore √2 ≈ 1.4142',
-    ],
+        `Answer = ${result}/${denominator}`,
+      ],
 
-    visual: {
-      type:
-        'square_root_two',
+      visual: {
+        type: 'fraction_addition',
 
-      approximation:
-        '1.4142',
-    },
-  };
- }
- generateFractionAdditionExplanation(
-  numerator1: number,
-  numerator2: number,
-  denominator: number,
-) {
-  const result =
-    numerator1 + numerator2;
+        numerator1,
 
-  return {
-    steps: [
-      `Denominators are same (${denominator})`,
+        numerator2,
 
-      `Add numerators: ${numerator1} + ${numerator2} = ${result}`,
+        denominator,
 
-      `Keep denominator ${denominator}`,
+        result,
+      },
+    };
+  }
+  generateFractionSubtractionExplanation(
+    numerator1: number,
+    numerator2: number,
+    denominator: number,
+  ) {
+    const result = numerator1 - numerator2;
 
-      `Answer = ${result}/${denominator}`,
-    ],
+    return {
+      steps: [
+        `Denominators are same (${denominator})`,
 
-    visual: {
-      type:
-        'fraction_addition',
+        `Subtract numerators: ${numerator1} - ${numerator2} = ${result}`,
 
-      numerator1,
+        `Keep denominator ${denominator}`,
 
-      numerator2,
+        `Answer = ${result}/${denominator}`,
+      ],
 
-      denominator,
+      visual: {
+        type: 'fraction_subtraction',
 
-      result,
-    },
-  };
- }
- generateFractionSubtractionExplanation(
-  numerator1: number,
-  numerator2: number,
-  denominator: number,
-) {
-  const result =
-    numerator1 - numerator2;
+        numerator1,
 
-  return {
-    steps: [
-      `Denominators are same (${denominator})`,
+        numerator2,
 
-      `Subtract numerators: ${numerator1} - ${numerator2} = ${result}`,
+        denominator,
 
-      `Keep denominator ${denominator}`,
+        result,
+      },
+    };
+  }
+  generateVinculumDivisionExplanation(dividend: number, divisor: number) {
+    const quotient = dividend / divisor;
 
-      `Answer = ${result}/${denominator}`,
-    ],
+    return {
+      steps: [
+        `Dividend = ${dividend}`,
 
-    visual: {
-      type:
-        'fraction_subtraction',
+        `Divisor = ${divisor}`,
 
-      numerator1,
+        `${divisor} goes into ${dividend} exactly ${quotient} times`,
 
-      numerator2,
+        `Answer = ${quotient}`,
+      ],
 
-      denominator,
+      visual: {
+        type: 'vinculum_division',
 
-      result,
-    },
-  };
- }
- generateVinculumDivisionExplanation(
-  dividend: number,
-  divisor: number,
-) {
-  const quotient =
-    dividend / divisor;
+        dividend,
 
-  return {
-    steps: [
-      `Dividend = ${dividend}`,
+        divisor,
 
-      `Divisor = ${divisor}`,
+        quotient,
+      },
+    };
+  }
+  generateBaudhayanaExplanation(a: number, b: number) {
+    const c = Math.sqrt(a * a + b * b);
 
-      `${divisor} goes into ${dividend} exactly ${quotient} times`,
+    return {
+      steps: [
+        `Baudhayana Theorem:`,
 
-      `Answer = ${quotient}`,
-    ],
+        `${a}² + ${b}² = c²`,
 
-    visual: {
-      type:
-        'vinculum_division',
+        `${a * a} + ${b * b} = ${c * c}`,
 
-      dividend,
+        `c = ${c}`,
+      ],
 
-      divisor,
+      visual: {
+        type: 'baudhayana_theorem',
 
-      quotient,
-    },
-  };
- }
- generateBaudhayanaExplanation(
-  a: number,
-  b: number,
-) {
-  const c =
-    Math.sqrt(
-      a * a + b * b,
-    );
+        a,
 
-  return {
-    steps: [
-      `Baudhayana Theorem:`,
+        b,
 
-      `${a}² + ${b}² = c²`,
+        c,
+      },
+    };
+  }
+  generateQuadraticExplanation(a: number, b: number) {
+    return {
+      steps: [
+        `Find two numbers whose sum is ${a + b}`,
 
-      `${a * a} + ${b * b} = ${c * c}`,
+        `and product is ${a * b}`,
 
-      `c = ${c}`,
-    ],
+        `Numbers are ${a} and ${b}`,
 
-    visual: {
-      type:
-        'baudhayana_theorem',
+        `Factorization = (x+${a})(x+${b})`,
+      ],
 
-      a,
+      visual: {
+        type: 'factor_quadratic',
 
-      b,
+        a,
 
-      c,
-    },
-  };
- }
- generateQuadraticExplanation(
-  a: number,
-  b: number,
-) {
-  return {
-    steps: [
-      `Find two numbers whose sum is ${
-        a + b
-      }`,
+        b,
+      },
+    };
+  }
+  generatePiExplanation(radius: number) {
+    const circumference = 2 * (22 / 7) * radius;
 
-      `and product is ${
-        a * b
-      }`,
+    return {
+      steps: [
+        `Formula: C = 2πr`,
 
-      `Numbers are ${a} and ${b}`,
+        `π = 22/7`,
 
-      `Factorization = (x+${a})(x+${b})`,
-    ],
+        `C = 2 × 22/7 × ${radius}`,
 
-    visual: {
-      type:
-        'factor_quadratic',
+        `C = ${circumference}`,
+      ],
 
-      a,
+      visual: {
+        type: 'concept_of_pi',
 
-      b,
-    },
-  };
- }
- generatePiExplanation(
-  radius: number,
-) {
-  const circumference =
-    2 *
-    (22 / 7) *
-    radius;
+        radius,
 
-  return {
-    steps: [
-      `Formula: C = 2πr`,
+        circumference,
+      },
+    };
+  }
+  generateCirclingSquareExplanation(side: number) {
+    const diagonal = Number((side * Math.sqrt(2)).toFixed(2));
 
-      `π = 22/7`,
+    const radius = Number((diagonal / 2).toFixed(2));
 
-      `C = 2 × 22/7 × ${radius}`,
+    return {
+      steps: [
+        `Square side = ${side}`,
 
-      `C = ${circumference}`,
-    ],
+        `Diagonal = ${side}√2 ≈ ${diagonal}`,
 
-    visual: {
-      type:
-        'concept_of_pi',
+        `Radius = diagonal / 2`,
 
-      radius,
+        `Radius = ${radius}`,
+      ],
 
-      circumference,
-    },
-  };
- }
- generateCirclingSquareExplanation(
-  side: number,
-) {
-  const diagonal =
-    Number(
-      (
-        side *
-        Math.sqrt(2)
-      ).toFixed(2),
-    );
+      visual: {
+        type: 'circling_square',
 
-  const radius =
-    Number(
-      (
-        diagonal / 2
-      ).toFixed(2),
-    );
+        side,
 
-  return {
-    steps: [
-      `Square side = ${side}`,
+        diagonal,
 
-      `Diagonal = ${side}√2 ≈ ${diagonal}`,
-
-      `Radius = diagonal / 2`,
-
-      `Radius = ${radius}`,
-    ],
-
-    visual: {
-      type:
-        'circling_square',
-
-      side,
-
-      diagonal,
-
-      radius,
-    },
-  };
- }
+        radius,
+      },
+    };
+  }
 }

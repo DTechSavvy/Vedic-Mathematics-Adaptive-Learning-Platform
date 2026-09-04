@@ -5,7 +5,6 @@ import { ReasoningStep } from '../interfaces/reasoning-step.interface';
 
 @Injectable()
 export class ScoringEngineService {
-
   //----------------------------------------------------
   // Base Scores
   //----------------------------------------------------
@@ -27,60 +26,60 @@ export class ScoringEngineService {
   }
 
   //======================================
-// Match Scores
-//======================================
+  // Match Scores
+  //======================================
 
-keywordScore(): number {
-  return 2;
-}
+  keywordScore(): number {
+    return 2;
+  }
 
-synonymScore(): number {
-  return 3;
-}
+  synonymScore(): number {
+    return 3;
+  }
 
-patternScore(): number {
-  return 5;
-}
+  patternScore(): number {
+    return 5;
+  }
 
-actionVerbScore(): number {
-  return 4;
-}
+  actionVerbScore(): number {
+    return 4;
+  }
 
-//======================================
-// N-Gram Scores
-//======================================
+  //======================================
+  // N-Gram Scores
+  //======================================
 
-bigramScore(): number {
-  return 4;
-}
+  bigramScore(): number {
+    return 4;
+  }
 
-trigramScore(): number {
-  return 6;
-}
+  trigramScore(): number {
+    return 6;
+  }
 
-//======================================
-// Context Boosts
-//======================================
+  //======================================
+  // Context Boosts
+  //======================================
 
-topicBoostScore(): number {
-  return 4;
-}
+  topicBoostScore(): number {
+    return 4;
+  }
 
-emotionBoostScore(): number {
-  return 3;
-}
+  emotionBoostScore(): number {
+    return 3;
+  }
 
-learningGoalBoostScore(): number {
-  return 3;
-}
+  learningGoalBoostScore(): number {
+    return 3;
+  }
 
-entityBoostScore(): number {
-  return 2;
-}
+  entityBoostScore(): number {
+    return 2;
+  }
 
-positionBoostScore(): number {
-  return 6;
-}
+  positionBoostScore(): number {
+    return 6;
+  }
 
   //----------------------------------------------------
   // Context Scores
@@ -115,40 +114,25 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   fuzzy(confidence: number): number {
+    if (confidence >= 0.98) return 5;
 
-    if (confidence >= 0.98)
-      return 5;
+    if (confidence >= 0.95) return 4;
 
-    if (confidence >= 0.95)
-      return 4;
+    if (confidence >= 0.9) return 3;
 
-    if (confidence >= 0.90)
-      return 3;
+    if (confidence >= 0.8) return 2;
 
-    if (confidence >= 0.80)
-      return 2;
-
-    if (confidence >= 0.70)
-      return 1;
+    if (confidence >= 0.7) return 1;
 
     return 0;
-
   }
 
   //----------------------------------------------------
   // Calculate Total
   //----------------------------------------------------
 
-  calculateTotal(
-    ...scores: number[]
-  ): number {
-
-    return scores.reduce(
-      (total, current) =>
-        total + current,
-      0,
-    );
-
+  calculateTotal(...scores: number[]): number {
+    return scores.reduce((total, current) => total + current, 0);
   }
 
   //----------------------------------------------------
@@ -156,31 +140,21 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   normalize(
-
     obtained: number,
 
     expected: number,
-
   ): number {
-
     if (expected <= 0) {
-
       return 0;
-
     }
 
     return Number(
-
       Math.min(
-
         obtained / expected,
 
         1,
-
       ).toFixed(2),
-
     );
-
   }
 
   //----------------------------------------------------
@@ -188,21 +162,15 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   confidence(
-
     obtained: number,
 
     expected: number,
-
   ): number {
-
     return this.normalize(
-
       obtained,
 
       expected,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -210,26 +178,19 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   createReasoning(
-
     stage: string,
 
     message: string,
 
     contribution: number,
-
   ): ReasoningStep {
-
     return {
-
       stage,
 
       message,
 
-      scoreContribution:
-        contribution,
-
+      scoreContribution: contribution,
     };
-
   }
 
   //----------------------------------------------------
@@ -237,7 +198,6 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   buildBreakdown(
-
     keywordScore: number,
 
     synonymScore: number,
@@ -257,10 +217,8 @@ positionBoostScore(): number {
     bloomBoost: number,
 
     difficultyBoost: number,
-
   ): ConfidenceBreakdown {
-        const totalScore = this.calculateTotal(
-
+    const totalScore = this.calculateTotal(
       keywordScore,
 
       synonymScore,
@@ -280,21 +238,15 @@ positionBoostScore(): number {
       bloomBoost,
 
       difficultyBoost,
-
     );
 
-    const confidence =
+    const confidence = this.normalize(
+      totalScore,
 
-      this.normalize(
-
-        totalScore,
-
-        35,
-
-      );
+      35,
+    );
 
     return {
-
       keywordScore,
 
       synonymScore,
@@ -318,9 +270,7 @@ positionBoostScore(): number {
       totalScore,
 
       confidence,
-
     };
-
   }
 
   //----------------------------------------------------
@@ -328,7 +278,6 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   aggregateIntentScore(
-
     keywordScore: number,
 
     synonymScore: number,
@@ -344,11 +293,8 @@ positionBoostScore(): number {
     learningGoalBoost: number,
 
     entityBoost: number,
-
   ): number {
-
     return this.calculateTotal(
-
       keywordScore,
 
       synonymScore,
@@ -364,9 +310,7 @@ positionBoostScore(): number {
       learningGoalBoost,
 
       entityBoost,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -374,25 +318,19 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   aggregateDifficultyScore(
-
     baseScore: number,
 
     topicBoost: number,
 
     entityBoost: number,
-
   ): number {
-
     return this.calculateTotal(
-
       baseScore,
 
       topicBoost,
 
       entityBoost,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -400,25 +338,19 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   aggregateBloomScore(
-
     keywordScore: number,
 
     learningGoalBoost: number,
 
     actionVerbScore: number,
-
   ): number {
-
     return this.calculateTotal(
-
       keywordScore,
 
       learningGoalBoost,
 
       actionVerbScore,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -426,25 +358,19 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   aggregateMisconceptionScore(
-
     keywordScore: number,
 
     fuzzyScore: number,
 
     entityBoost: number,
-
   ): number {
-
     return this.calculateTotal(
-
       keywordScore,
 
       fuzzyScore,
 
       entityBoost,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -452,80 +378,50 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   aggregateRecommendationScore(
-
     keywordScore: number,
 
     topicBoost: number,
 
     emotionBoost: number,
-
   ): number {
-
     return this.calculateTotal(
-
       keywordScore,
 
       topicBoost,
 
       emotionBoost,
-
     );
-
   }
 
   //----------------------------------------------------
   // Confidence From Breakdown
   //----------------------------------------------------
 
-  confidenceFromBreakdown(
-
-    breakdown: ConfidenceBreakdown,
-
-  ): number {
-
+  confidenceFromBreakdown(breakdown: ConfidenceBreakdown): number {
     return breakdown.confidence;
-
   }
 
   //----------------------------------------------------
   // Merge Reasoning
   //----------------------------------------------------
 
-  mergeReasoning(
-
-    ...steps: ReasoningStep[][]
-
-  ): ReasoningStep[] {
-
+  mergeReasoning(...steps: ReasoningStep[][]): ReasoningStep[] {
     return steps.flat();
-
   }
-    //----------------------------------------------------
+  //----------------------------------------------------
   // Rank Intent Scores
   //----------------------------------------------------
 
-  rankIntentScores(
-    scores: Map<any, number>,
-  ) {
-
-    const maxScore = Math.max(
-      ...scores.values(),
-      1,
-    );
+  rankIntentScores(scores: Map<any, number>) {
+    const maxScore = Math.max(...scores.values(), 1);
 
     return [...scores.entries()]
       .map(([intent, score]) => ({
         intent,
         score,
-        confidence: this.confidence(
-          score,
-          maxScore,
-        ),
+        confidence: this.confidence(score, maxScore),
       }))
-      .sort(
-        (a, b) => b.score - a.score,
-      );
-
+      .sort((a, b) => b.score - a.score);
   }
 
   //----------------------------------------------------
@@ -539,18 +435,11 @@ positionBoostScore(): number {
     }[],
     unknownIntent: any,
   ) {
-
-    if (
-      ranking.length === 0 ||
-      ranking[0].score <= 0
-    ) {
-
+    if (ranking.length === 0 || ranking[0].score <= 0) {
       return unknownIntent;
-
     }
 
     return ranking[0].intent;
-
   }
 
   //----------------------------------------------------
@@ -563,30 +452,19 @@ positionBoostScore(): number {
       score: number;
     }[],
   ) {
-
-    if (
-      ranking.length < 2 ||
-      ranking[1].score <= 0
-    ) {
-
+    if (ranking.length < 2 || ranking[1].score <= 0) {
       return null;
-
     }
 
     return ranking[1].intent;
-
   }
 
   //----------------------------------------------------
   // Merge Evidence
   //----------------------------------------------------
 
-  mergeEvidence(
-    ...arrays: string[][]
-  ): string[] {
-
+  mergeEvidence(...arrays: string[][]): string[] {
     return [...new Set(arrays.flat())];
-
   }
 
   //----------------------------------------------------
@@ -594,45 +472,23 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   emptyReasoning() {
-
     return [] as ReasoningStep[];
-
   }
 
   //----------------------------------------------------
   // Safe Confidence
   //----------------------------------------------------
 
-  safeConfidence(
-    breakdown: ConfidenceBreakdown,
-  ): number {
-
-    return Number(
-      Math.max(
-        0,
-        Math.min(
-          1,
-          breakdown.confidence,
-        ),
-      ).toFixed(2),
-    );
-
+  safeConfidence(breakdown: ConfidenceBreakdown): number {
+    return Number(Math.max(0, Math.min(1, breakdown.confidence)).toFixed(2));
   }
 
   //----------------------------------------------------
   // Final Intent Score
   //----------------------------------------------------
 
-  finalizeIntentScore(
-    score: number,
-    max: number,
-  ): number {
-
-    return this.confidence(
-      score,
-      max,
-    );
-
+  finalizeIntentScore(score: number, max: number): number {
+    return this.confidence(score, max);
   }
 
   //----------------------------------------------------
@@ -640,9 +496,7 @@ positionBoostScore(): number {
   //----------------------------------------------------
 
   emptyBreakdown(): ConfidenceBreakdown {
-
     return {
-
       keywordScore: 0,
 
       synonymScore: 0,
@@ -666,9 +520,6 @@ positionBoostScore(): number {
       totalScore: 0,
 
       confidence: 0,
-
     };
-
   }
-
 }

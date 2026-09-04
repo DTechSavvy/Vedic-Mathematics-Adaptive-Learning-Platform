@@ -1,11 +1,9 @@
 import { ConfidenceBreakdown } from '../confidence-breakdown.interface';
 
 export interface NLPAnalytics {
-
   overallConfidence: number;
 
   confidence: {
-
     intent: number;
 
     topic: number;
@@ -19,9 +17,7 @@ export interface NLPAnalytics {
     bloom: number;
 
     misconception: number;
-
   };
 
   scoreBreakdown?: ConfidenceBreakdown;
-
 }

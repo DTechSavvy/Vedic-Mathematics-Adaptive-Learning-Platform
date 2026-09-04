@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -10,14 +10,39 @@ export class LessonService {
       where: {
         topicId,
       },
+      orderBy: { order: 'asc' },
     });
   }
 
   async getLesson(id: number) {
-    return this.prisma.lesson.findUnique({
+    const lesson = await this.prisma.lesson.findUnique({
       where: {
         id,
       },
     });
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    return lesson;
+  }
+
+  async getLessonContent(id: number) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        examples: {
+          orderBy: { order: 'asc' },
+        },
+        prerequisiteLesson: true,
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    return lesson;
   }
 }

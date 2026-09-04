@@ -9,7 +9,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const port = Number(configService.get<number>('PORT', 3000));
-  const clientUrl = configService.get<string>('CLIENT_URL', 'http://localhost:5173');
+  const clientUrl = configService.get<string>(
+    'CLIENT_URL',
+    'http://localhost:5173',
+  );
 
   app.use(
     helmet({

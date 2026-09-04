@@ -1,12 +1,22 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ModuleService } from './module.service';
 
-@Controller('courses')
+@Controller()
 export class ModuleController {
   constructor(private readonly moduleService: ModuleService) {}
 
-  @Get(':id/modules')
-  getModules(@Param('id') id: string) {
-    return this.moduleService.getModules(Number(id));
+  @Get('courses/:id/modules')
+  getModules(@Param('id', ParseIntPipe) id: number) {
+    return this.moduleService.getModules(id);
+  }
+
+  @Get('modules/:id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.moduleService.findOne(id);
+  }
+
+  @Get('modules/:id/full')
+  findOneWithTopics(@Param('id', ParseIntPipe) id: number) {
+    return this.moduleService.findOneWithTopics(id);
   }
 }

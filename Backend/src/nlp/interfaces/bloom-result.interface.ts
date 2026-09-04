@@ -2,7 +2,6 @@ import { BloomLevel } from '../enums/bloom-level.enum';
 import { BloomBreakdown } from './bloom-breakdown.interface';
 
 export interface BloomResult {
-
   level: BloomLevel;
 
   confidence: number;
@@ -12,5 +11,4 @@ export interface BloomResult {
   matchedKeywords: string[];
 
   reasoning: string[];
-
 }

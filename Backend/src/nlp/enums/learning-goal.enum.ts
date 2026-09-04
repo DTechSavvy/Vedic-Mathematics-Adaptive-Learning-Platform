@@ -1,5 +1,4 @@
 export enum LearningGoal {
-
   ConceptUnderstanding = 'ConceptUnderstanding',
 
   SkillPractice = 'SkillPractice',
@@ -17,5 +16,4 @@ export enum LearningGoal {
   Motivation = 'Motivation',
 
   Unknown = 'Unknown',
-
 }

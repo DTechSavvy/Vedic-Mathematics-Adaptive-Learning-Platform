@@ -6,7 +6,6 @@ import { DifficultyLevel } from '../enums/difficulty-level.enum';
 import { MisconceptionType } from '../enums/misconception-type.enum';
 
 export interface GoldenQuery {
-
   input: string;
 
   intent: IntentType;
@@ -22,5 +21,4 @@ export interface GoldenQuery {
   difficulty: DifficultyLevel;
 
   misconception: MisconceptionType;
-
 }

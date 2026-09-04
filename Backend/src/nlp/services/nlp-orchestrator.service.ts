@@ -15,9 +15,7 @@ import { RecommendationBuilderService } from './recommendation-builder.service';
 
 @Injectable()
 export class NLPOrchestratorService {
-
   constructor(
-
     private readonly preprocessingService: PreprocessingService,
 
     private readonly intentClassificationService: IntentClassificationService,
@@ -37,63 +35,46 @@ export class NLPOrchestratorService {
     private readonly misconceptionDetectorService: MisconceptionDetectorService,
 
     private readonly recommendationBuilderService: RecommendationBuilderService,
-
-
   ) {}
 
   analyze(text: string): NLPAnalysis {
+    const startTime = Date.now();
 
-  const startTime = Date.now();
+    //---------------------------------
+    // STEP 1
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 1
-  //---------------------------------
+    const processed = this.preprocessingService.preprocess(text);
 
-  const processed =
-    this.preprocessingService.preprocess(text);
+    //---------------------------------
+    // STEP 2
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 2
-  //---------------------------------
+    const topic = this.topicDetectorService.detectTopic(processed);
 
-  const topic =
-    this.topicDetectorService.detectTopic(
-      processed,
-    );
+    //---------------------------------
+    // STEP 3
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 3
-  //---------------------------------
+    const emotion = this.emotionDetectorService.detectEmotion(processed);
 
-  const emotion =
-    this.emotionDetectorService.detectEmotion(
-      processed,
-    );
+    //---------------------------------
+    // STEP 4
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 4
-  //---------------------------------
+    const learningGoal = this.learningGoalDetectorService.detectGoal(processed);
 
-  const learningGoal =
-    this.learningGoalDetectorService.detectGoal(
-      processed,
-    );
+    //---------------------------------
+    // STEP 5
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 5
-  //---------------------------------
+    const entities = this.entityExtractorService.extract(processed);
 
-  const entities =
-    this.entityExtractorService.extract(
-      processed,
-    );
+    //---------------------------------
+    // STEP 6
+    //---------------------------------
 
-  //---------------------------------
-  // STEP 6
-  //---------------------------------
-
-  const intent =
-    this.intentClassificationService.classify(
+    const intent = this.intentClassificationService.classify(
       processed,
       topic,
       emotion,
@@ -101,41 +82,33 @@ export class NLPOrchestratorService {
       entities,
     );
 
-  //---------------------------------
-  // STEP 7
-  //---------------------------------
+    //---------------------------------
+    // STEP 7
+    //---------------------------------
 
-  const difficulty =
-    this.difficultyAnalyzerService.analyze(
+    const difficulty = this.difficultyAnalyzerService.analyze(
       processed,
       topic,
       entities,
     );
 
-  //---------------------------------
-  // STEP 8
-  //---------------------------------
+    //---------------------------------
+    // STEP 8
+    //---------------------------------
 
-  const bloom =
-    this.bloomTaxonomyService.classify(
-      processed,
-    );
+    const bloom = this.bloomTaxonomyService.classify(processed);
 
-  //---------------------------------
-  // STEP 9
-  //---------------------------------
+    //---------------------------------
+    // STEP 9
+    //---------------------------------
 
-  const misconception =
-    this.misconceptionDetectorService.detect(
-      processed,
-    );
+    const misconception = this.misconceptionDetectorService.detect(processed);
 
-  //---------------------------------
-  // STEP 10
-  //---------------------------------
+    //---------------------------------
+    // STEP 10
+    //---------------------------------
 
-  const recommendations =
-    this.recommendationBuilderService.build(
+    const recommendations = this.recommendationBuilderService.build(
       intent,
       topic,
       learningGoal,
@@ -145,200 +118,169 @@ export class NLPOrchestratorService {
       misconception,
     );
 
-  const processingTime =
-    Date.now() - startTime;
+    const processingTime = Date.now() - startTime;
 
-  return {
+    return {
+      //---------------------------------
+      // Input
+      //---------------------------------
 
-  //---------------------------------
-  // Input
-  //---------------------------------
+      input: {
+        originalText: text,
+      },
 
-  input: {
-    originalText: text,
-  },
+      //---------------------------------
+      // Preprocessing
+      //---------------------------------
 
-  //---------------------------------
-  // Preprocessing
-  //---------------------------------
+      preprocessing: {
+        cleanedText: processed.cleanedText,
+        normalizedText: processed.normalizedText,
+        corrections: processed.corrections,
+      },
 
-  preprocessing: {
-    cleanedText: processed.cleanedText,
-    normalizedText: processed.normalizedText,
-    corrections: processed.corrections,
-  },
+      //---------------------------------
+      // Linguistics
+      //---------------------------------
 
-  //---------------------------------
-  // Linguistics
-  //---------------------------------
+      linguistics: {
+        tokens: processed.tokens,
+        correctedTokens: processed.correctedTokens,
+        filteredTokens: processed.filteredTokens,
+        bigrams: processed.bigrams,
+        trigrams: processed.trigrams,
+        wordCount: processed.wordCount,
+        sentenceCount: processed.sentenceCount,
+        containsQuestion: processed.containsQuestion,
+        containsNumbers: processed.containsNumbers,
+        containsMathExpression: processed.containsMathExpression,
+      },
 
-  linguistics: {
-    tokens: processed.tokens,
-    correctedTokens: processed.correctedTokens,
-    filteredTokens: processed.filteredTokens,
-    bigrams: processed.bigrams,
-    trigrams: processed.trigrams,
-    wordCount: processed.wordCount,
-    sentenceCount: processed.sentenceCount,
-    containsQuestion: processed.containsQuestion,
-    containsNumbers: processed.containsNumbers,
-    containsMathExpression: processed.containsMathExpression,
-  },
+      //---------------------------------
+      // Semantics
+      //---------------------------------
 
-  //---------------------------------
-  // Semantics
-  //---------------------------------
+      semantics: {
+        intent,
+        topic,
+        emotion,
+        learningGoal,
+        entities,
+      },
 
-  semantics: {
-    intent,
-    topic,
-    emotion,
-    learningGoal,
-    entities,
-  },
+      //---------------------------------
+      // Pedagogy
+      //---------------------------------
 
-  //---------------------------------
-  // Pedagogy
-  //---------------------------------
+      pedagogy: {
+        difficulty,
+        bloom,
+        misconception,
+      },
 
-  pedagogy: {
-    difficulty,
-    bloom,
-    misconception,
-  },
+      //---------------------------------
+      // Recommendations
+      //---------------------------------
 
-  //---------------------------------
-  // Recommendations
-  //---------------------------------
+      recommendations,
 
-  recommendations,
+      //---------------------------------
+      // Analytics
+      //---------------------------------
 
-  //---------------------------------
-  // Analytics
-  //---------------------------------
-
-  analytics: {
-
-    overallConfidence:
-      Number(
-        (
+      analytics: {
+        overallConfidence: Number(
           (
-            intent.confidence +
-            topic.confidence +
-            emotion.confidence +
-            learningGoal.confidence +
-            difficulty.confidence +
-            bloom.confidence +
-            misconception.confidence
-          ) / 7
-        ).toFixed(2),
-      ),
+            (intent.confidence +
+              topic.confidence +
+              emotion.confidence +
+              learningGoal.confidence +
+              difficulty.confidence +
+              bloom.confidence +
+              misconception.confidence) /
+            7
+          ).toFixed(2),
+        ),
 
-    confidence: {
+        confidence: {
+          intent: intent.confidence,
 
-      intent: intent.confidence,
+          topic: topic.confidence,
 
-      topic: topic.confidence,
+          emotion: emotion.confidence,
 
-      emotion: emotion.confidence,
+          learningGoal: learningGoal.confidence,
 
-      learningGoal: learningGoal.confidence,
+          difficulty: difficulty.confidence,
 
-      difficulty: difficulty.confidence,
+          bloom: bloom.confidence,
 
-      bloom: bloom.confidence,
+          misconception: misconception.confidence,
+        },
 
-      misconception: misconception.confidence,
+        scoreBreakdown: intent.confidenceBreakdown,
+      },
 
-    },
+      //---------------------------------
+      // Metadata
+      //---------------------------------
 
-    scoreBreakdown:
-      intent.confidenceBreakdown,
+      metadata: {
+        processingTimeMs: processingTime,
 
-  },
+        nlpVersion: '1.0.0',
 
-  //---------------------------------
-  // Metadata
-  //---------------------------------
+        timestamp: new Date().toISOString(),
+      },
 
-  metadata: {
+      //---------------------------------
+      // Trace
+      //---------------------------------
 
-    processingTimeMs:
-      processingTime,
+      trace: [
+        'Preprocessing Completed',
 
-    nlpVersion:
-      '1.0.0',
+        'Topic Detection Completed',
 
-    timestamp:
-      new Date().toISOString(),
+        'Emotion Detection Completed',
 
-  },
+        'Learning Goal Detection Completed',
 
-  //---------------------------------
-  // Trace
-  //---------------------------------
+        'Entity Extraction Completed',
 
-  trace: [
+        'Intent Classification Completed',
 
-    'Preprocessing Completed',
+        'Difficulty Analysis Completed',
 
-    'Topic Detection Completed',
+        'Bloom Taxonomy Completed',
 
-    'Emotion Detection Completed',
+        'Misconception Detection Completed',
 
-    'Learning Goal Detection Completed',
-
-    'Entity Extraction Completed',
-
-    'Intent Classification Completed',
-
-    'Difficulty Analysis Completed',
-
-    'Bloom Taxonomy Completed',
-
-    'Misconception Detection Completed',
-
-    'Recommendation Generation Completed',
-
-  ],
-
-};
-
- }
-
+        'Recommendation Generation Completed',
+      ],
+    };
+  }
 
   //---------------------------------
   // Difficulty Estimation
   //---------------------------------
 
-  private calculateDifficulty(
-    processed: any,
-  ): string {
-
+  private calculateDifficulty(processed: any): string {
     let score = 0;
 
-    if (processed.wordCount >= 10)
-      score += 2;
+    if (processed.wordCount >= 10) score += 2;
 
-    if (processed.wordCount >= 20)
-      score += 2;
+    if (processed.wordCount >= 20) score += 2;
 
-    if (processed.containsMathExpression)
-      score += 2;
+    if (processed.containsMathExpression) score += 2;
 
-    if (
-      processed.normalizedTopics.length > 1
-    )
-      score += 2;
+    if (processed.normalizedTopics.length > 1) score += 2;
 
-    if (score <= 2)
-      return 'Easy';
+    if (score <= 2) return 'Easy';
 
-    if (score <= 5)
-      return 'Medium';
+    if (score <= 5) return 'Medium';
 
     return 'Hard';
-
   }
 
   //---------------------------------
@@ -346,7 +288,6 @@ export class NLPOrchestratorService {
   //---------------------------------
 
   private calculateOverallConfidence(
-
     intent: number,
 
     topic: number,
@@ -354,28 +295,7 @@ export class NLPOrchestratorService {
     goal: number,
 
     emotion: number,
-
   ): number {
-
-    return Number(
-
-      (
-        (
-
-          intent +
-
-          topic +
-
-          goal +
-
-          emotion
-
-        ) / 4
-
-      ).toFixed(2),
-
-    );
-
+    return Number(((intent + topic + goal + emotion) / 4).toFixed(2));
   }
-
 }

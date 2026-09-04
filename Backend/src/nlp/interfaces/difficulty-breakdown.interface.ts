@@ -1,5 +1,4 @@
 export interface DifficultyBreakdown {
-
   wordComplexity: number;
 
   mathComplexity: number;
@@ -11,5 +10,4 @@ export interface DifficultyBreakdown {
   expressionComplexity: number;
 
   totalScore: number;
-
 }

@@ -8,24 +8,16 @@ export class MistakeAnalyzerService {
     studentAnswer: string,
     correctAnswer: string,
   ): Promise<string> {
-
     if (studentAnswer === correctAnswer) {
       return 'Answer is correct.';
     }
 
     switch (topic) {
-
       case 'Nikhilam Subtraction':
-        return this.analyzeNikhilamMistake(
-          studentAnswer,
-          correctAnswer,
-        );
+        return this.analyzeNikhilamMistake(studentAnswer, correctAnswer);
 
       case 'Addition Without Carrying':
-        return this.analyzeAdditionMistake(
-          studentAnswer,
-          correctAnswer,
-        );
+        return this.analyzeAdditionMistake(studentAnswer, correctAnswer);
 
       default:
         return `
@@ -44,12 +36,7 @@ More detailed analysis will be available in future versions.
     studentAnswer: string,
     correctAnswer: string,
   ): string {
-
-    const diff =
-      Math.abs(
-        Number(studentAnswer) -
-        Number(correctAnswer),
-      );
+    const diff = Math.abs(Number(studentAnswer) - Number(correctAnswer));
 
     if (diff <= 2) {
       return `
@@ -77,7 +64,6 @@ ${correctAnswer}
     studentAnswer: string,
     correctAnswer: string,
   ): string {
-
     return `
 Addition mistake detected.
 

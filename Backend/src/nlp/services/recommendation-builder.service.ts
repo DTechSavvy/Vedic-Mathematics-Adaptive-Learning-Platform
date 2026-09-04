@@ -17,9 +17,7 @@ import { EmotionType } from '../enums/emotion-type.enum';
 
 @Injectable()
 export class RecommendationBuilderService {
-
   build(
-
     intent: IntentClassificationResult,
 
     topic: TopicResult,
@@ -33,46 +31,28 @@ export class RecommendationBuilderService {
     bloom: BloomResult,
 
     misconception: MisconceptionResult,
-
   ): NLPRecommendations {
-
     return {
+      tutorMode: this.getTutorMode(intent),
 
-      tutorMode:
-        this.getTutorMode(intent),
+      practiceMode: this.getPracticeMode(learningGoal),
 
-      practiceMode:
-        this.getPracticeMode(learningGoal),
+      questionDifficulty: this.getQuestionDifficulty(difficulty),
 
-      questionDifficulty:
-        this.getQuestionDifficulty(difficulty),
+      explanationDepth: this.getExplanationDepth(bloom),
 
-      explanationDepth:
-        this.getExplanationDepth(bloom),
+      hintLevel: this.getHintLevel(difficulty),
 
-      hintLevel:
-        this.getHintLevel(difficulty),
-
-      nextAction:
-        this.getNextAction(
-          intent,
-          misconception,
-        ),
-
+      nextAction: this.getNextAction(intent, misconception),
     };
-
   }
 
   //---------------------------------
   // Tutor Mode
   //---------------------------------
 
-  private getTutorMode(
-    intent: IntentClassificationResult,
-  ): string {
-
+  private getTutorMode(intent: IntentClassificationResult): string {
     switch (intent.primaryIntent) {
-
       case IntentType.ExplainTopic:
         return 'ConceptTeacher';
 
@@ -93,57 +73,39 @@ export class RecommendationBuilderService {
 
       default:
         return 'GeneralTutor';
-
     }
-
   }
 
   //---------------------------------
   // Practice Mode
   //---------------------------------
 
-  private getPracticeMode(
-    goal: LearningGoalResult,
-  ): string {
-
+  private getPracticeMode(goal: LearningGoalResult): string {
     return goal.goal;
-
   }
 
   //---------------------------------
   // Difficulty
   //---------------------------------
 
-  private getQuestionDifficulty(
-    difficulty: DifficultyResult,
-  ): string {
-
+  private getQuestionDifficulty(difficulty: DifficultyResult): string {
     return difficulty.difficulty;
-
   }
 
   //---------------------------------
   // Explanation Depth
   //---------------------------------
 
-  private getExplanationDepth(
-    bloom: BloomResult,
-  ): string {
-
+  private getExplanationDepth(bloom: BloomResult): string {
     return bloom.level;
-
   }
 
   //---------------------------------
   // Hint Level
   //---------------------------------
 
-  private getHintLevel(
-    difficulty: DifficultyResult,
-  ): string {
-
+  private getHintLevel(difficulty: DifficultyResult): string {
     switch (difficulty.difficulty) {
-
       case 'Easy':
         return 'Minimal';
 
@@ -155,9 +117,7 @@ export class RecommendationBuilderService {
 
       default:
         return 'Guided';
-
     }
-
   }
 
   //---------------------------------
@@ -165,21 +125,14 @@ export class RecommendationBuilderService {
   //---------------------------------
 
   private getNextAction(
-
     intent: IntentClassificationResult,
 
     misconception: MisconceptionResult,
-
   ): string {
-
     if (misconception.type !== MisconceptionType.None) {
-
       return 'CorrectMisconception';
-
     }
 
     return intent.primaryIntent;
-
   }
-
 }

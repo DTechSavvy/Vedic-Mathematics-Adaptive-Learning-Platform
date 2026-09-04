@@ -9,11 +9,7 @@ import { VEDIC_TECHNIQUES } from '../constants/entities/vedic-techniques';
 
 @Injectable()
 export class EntityExtractorService {
-
-  extract(
-    processed: ProcessedText,
-  ): EntityResult {
-
+  extract(processed: ProcessedText): EntityResult {
     const concepts: string[] = [];
 
     const techniques: string[] = [];
@@ -27,35 +23,24 @@ export class EntityExtractorService {
     const entities: string[] = [];
 
     for (const token of processed.correctedTokens) {
-
       if (MATH_CONCEPTS.includes(token)) {
-
         concepts.push(token);
-
       }
 
       if (VEDIC_TECHNIQUES.includes(token)) {
-
         techniques.push(token);
-
       }
 
       if (MATH_OPERATIONS.includes(token)) {
-
         operations.push(token);
-
       }
 
       if (/^\d+$/.test(token)) {
-
         numbers.push(Number(token));
-
       }
-
     }
 
     entities.push(
-
       ...concepts,
 
       ...techniques,
@@ -63,11 +48,9 @@ export class EntityExtractorService {
       ...operations,
 
       ...formulas,
-
     );
 
     return {
-
       concepts,
 
       techniques,
@@ -78,10 +61,7 @@ export class EntityExtractorService {
 
       numbers,
 
-      entities:[...new Set(entities)],
-
+      entities: [...new Set(entities)],
     };
-
   }
-
 }

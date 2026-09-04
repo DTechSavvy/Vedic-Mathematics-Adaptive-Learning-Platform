@@ -1,5 +1,4 @@
 export interface ConfidenceBreakdown {
-
   keywordScore: number;
 
   synonymScore: number;
@@ -23,5 +22,4 @@ export interface ConfidenceBreakdown {
   totalScore: number;
 
   confidence: number;
-
 }

@@ -1,27 +1,22 @@
 export interface SynonymEntry {
-
   root: string;
 
   weight: number;
 
   synonyms: string[];
-
 }
 
 export const GLOBAL_SYNONYMS: SynonymEntry[] = [
-
   // -------------------------
   // Explain
   // -------------------------
 
   {
-
     root: 'explain',
 
     weight: 5,
 
     synonyms: [
-
       'teach',
 
       'describe',
@@ -41,9 +36,7 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'guide',
 
       'educate',
-
     ],
-
   },
 
   // -------------------------
@@ -51,13 +44,11 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
   // -------------------------
 
   {
-
     root: 'practice',
 
     weight: 5,
 
     synonyms: [
-
       'exercise',
 
       'solve',
@@ -81,9 +72,7 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'enhance',
 
       'master',
-
     ],
-
   },
 
   // -------------------------
@@ -91,13 +80,11 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
   // -------------------------
 
   {
-
     root: 'recommend',
 
     weight: 4,
 
     synonyms: [
-
       'suggest',
 
       'advise',
@@ -111,9 +98,7 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'suitable',
 
       'best',
-
     ],
-
   },
 
   // -------------------------
@@ -121,13 +106,11 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
   // -------------------------
 
   {
-
     root: 'motivate',
 
     weight: 4,
 
     synonyms: [
-
       'encourage',
 
       'inspire',
@@ -141,9 +124,7 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'confidence',
 
       'hope',
-
     ],
-
   },
 
   // -------------------------
@@ -151,13 +132,11 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
   // -------------------------
 
   {
-
     root: 'plan',
 
     weight: 4,
 
     synonyms: [
-
       'schedule',
 
       'roadmap',
@@ -169,9 +148,7 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'prepare',
 
       'organize',
-
     ],
-
   },
 
   // -------------------------
@@ -179,13 +156,11 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
   // -------------------------
 
   {
-
     root: 'doubt',
 
     weight: 5,
 
     synonyms: [
-
       'confused',
 
       'unclear',
@@ -205,9 +180,6 @@ export const GLOBAL_SYNONYMS: SynonymEntry[] = [
       'error',
 
       'forget',
-
     ],
-
   },
-
 ];

@@ -1,7 +1,6 @@
 import { BloomLevel } from '../enums/bloom-level.enum';
 
 export const BLOOM_KEYWORDS: Record<BloomLevel, string[]> = {
-
   [BloomLevel.Remember]: [
     'what',
     'define',
@@ -58,5 +57,4 @@ export const BLOOM_KEYWORDS: Record<BloomLevel, string[]> = {
   ],
 
   [BloomLevel.Unknown]: [],
-
 };

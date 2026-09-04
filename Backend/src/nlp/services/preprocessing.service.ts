@@ -11,13 +11,9 @@ import { VEDIC_TOPICS } from '../constants/vedic-topics';
 
 @Injectable()
 export class PreprocessingService {
-  constructor(
-   private readonly fuzzyMatcherService:FuzzyMatcherService,
-
-  ){}
+  constructor(private readonly fuzzyMatcherService: FuzzyMatcherService) {}
 
   preprocess(text: string): ProcessedText {
-
     const originalText = text;
 
     // ----------------------------
@@ -37,7 +33,6 @@ export class PreprocessingService {
     // ----------------------------
 
     const abbreviationMap: Record<string, string> = {
-
       u: 'you',
 
       ur: 'your',
@@ -57,15 +52,12 @@ export class PreprocessingService {
       dont: 'do not',
 
       im: 'i am',
-
     };
 
     for (const [abbr, full] of Object.entries(abbreviationMap)) {
-
       const regex = new RegExp(`\\b${abbr}\\b`, 'g');
 
       normalizedText = normalizedText.replace(regex, full);
-
     }
 
     // ----------------------------
@@ -108,128 +100,98 @@ export class PreprocessingService {
     // Tokenization
     // ----------------------------
 
-    const tokens = cleanedText
-      .split(' ')
-      .filter(token => token.length > 0);
+    const tokens = cleanedText.split(' ').filter((token) => token.length > 0);
 
     const dictionary = [
+      ...new Set([
+        ...Object.keys(SPELL_CORRECTIONS),
 
-    ...new Set([
+        ...Object.values(SPELL_CORRECTIONS),
 
-    ...Object.keys(SPELL_CORRECTIONS),
+        ...ENGLISH_VOCABULARY,
 
-    ...Object.values(SPELL_CORRECTIONS),
+        ...MATH_VOCABULARY,
 
-    ...ENGLISH_VOCABULARY,
+        ...EDUCATIONAL_VOCABULARY,
 
-    ...MATH_VOCABULARY,
-
-    ...EDUCATIONAL_VOCABULARY,
-
-    ...VEDIC_TOPICS,
-
-   ]),
-
-  ];
+        ...VEDIC_TOPICS,
+      ]),
+    ];
 
     const corrections: {
-     original: string;
-     corrected: string;
-     confidence: number;
+      original: string;
+      corrected: string;
+      confidence: number;
     }[] = [];
 
-    const correctedTokens = tokens.map(token => {
+    const correctedTokens = tokens.map((token) => {
+      if (SPELL_CORRECTIONS[token]) {
+        corrections.push({
+          original: token,
+          corrected: SPELL_CORRECTIONS[token],
+          confidence: 1,
+        });
 
-     if (SPELL_CORRECTIONS[token]) {
+        return SPELL_CORRECTIONS[token];
+      }
 
-      corrections.push({
-       original: token,
-       corrected: SPELL_CORRECTIONS[token],
-       confidence: 1,
-      });
+      const match = this.fuzzyMatcherService.findBestMatch(token, dictionary);
 
-      return SPELL_CORRECTIONS[token];
+      if (match.confidence >= 0.8 && match.corrected !== token) {
+        corrections.push({
+          original: token,
+          corrected: match.corrected,
+          confidence: match.confidence,
+        });
 
-     }
+        return match.corrected;
+      }
 
-    const match =
-     this.fuzzyMatcherService.findBestMatch(
-      token,
-      dictionary,
-    );
-
-    if (
-     match.confidence >= 0.80 &&
-     match.corrected !== token
-    ) {
-
-    corrections.push({
-      original: token,
-      corrected: match.corrected,
-      confidence: match.confidence,
+      return token;
     });
 
-    return match.corrected;
-
-  }
-
-  return token;
-
-  });
-
     // --------------------------------
-// Stop Word Removal
-// --------------------------------
+    // Stop Word Removal
+    // --------------------------------
 
     const filteredTokens = correctedTokens.filter(
-     token => !STOP_WORDS.includes(token),
+      (token) => !STOP_WORDS.includes(token),
     );
 
     // ----------------------------
-// Generate Bigrams
-// ----------------------------
+    // Generate Bigrams
+    // ----------------------------
 
     const bigrams: string[] = [];
 
     for (let i = 0; i < filteredTokens.length - 1; i++) {
-
-     bigrams.push(
-      `${filteredTokens[i]} ${filteredTokens[i + 1]}`,
-     );
-
+      bigrams.push(`${filteredTokens[i]} ${filteredTokens[i + 1]}`);
     }
 
-// ----------------------------
-// Generate Trigrams
-// ----------------------------
+    // ----------------------------
+    // Generate Trigrams
+    // ----------------------------
 
     const trigrams: string[] = [];
 
     for (let i = 0; i < filteredTokens.length - 2; i++) {
-
-     trigrams.push(
-      `${filteredTokens[i]} ${filteredTokens[i + 1]} ${filteredTokens[i + 2]}`,
+      trigrams.push(
+        `${filteredTokens[i]} ${filteredTokens[i + 1]} ${filteredTokens[i + 2]}`,
       );
-
     }
 
     // --------------------------------
-// Topic Alias Detection
-// --------------------------------
+    // Topic Alias Detection
+    // --------------------------------
 
     const normalizedTopics: string[] = [];
 
-    const cleanedSentence =
-     correctedTokens.join(' ');
+    const cleanedSentence = correctedTokens.join(' ');
 
     for (const [alias, canonical] of Object.entries(TOPIC_ALIASES)) {
-
-     if (cleanedSentence.includes(alias)) {
-
-      normalizedTopics.push(canonical);
-
-     }
-
+      if (cleanedSentence.includes(alias)) {
+        normalizedTopics.push(canonical);
+      }
     }
 
     // ----------------------------
@@ -238,51 +200,44 @@ export class PreprocessingService {
 
     const wordCount = tokens.length;
 
-    const sentenceCount =
-      originalText
-        .split(/[.!?]+/)
-        .filter(sentence => sentence.trim().length > 0)
-        .length;
+    const sentenceCount = originalText
+      .split(/[.!?]+/)
+      .filter((sentence) => sentence.trim().length > 0).length;
 
-    const containsNumbers =
-      /\d/.test(cleanedText);
+    const containsNumbers = /\d/.test(cleanedText);
 
-    const containsMathExpression =
-      /[\d+\-*/=]/.test(cleanedText);
+    const containsMathExpression = /[\d+\-*/=]/.test(cleanedText);
 
     return {
+      originalText,
 
-     originalText,
+      cleanedText,
 
-     cleanedText,
+      normalizedText,
 
-     normalizedText,
+      tokens,
 
-     tokens,
+      correctedTokens,
 
-     correctedTokens,
+      corrections,
 
-     corrections,
+      filteredTokens,
 
-     filteredTokens,
+      normalizedTopics,
 
-     normalizedTopics,
+      bigrams,
 
-     bigrams,
+      trigrams,
 
-     trigrams,
+      wordCount,
 
-     wordCount,
+      sentenceCount,
 
-     sentenceCount,
+      containsQuestion,
 
-     containsQuestion,
+      containsNumbers,
 
-     containsNumbers,
-
-     containsMathExpression,
-
+      containsMathExpression,
     };
   }
-
 }

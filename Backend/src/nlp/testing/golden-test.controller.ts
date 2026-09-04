@@ -3,10 +3,7 @@ import { GoldenTestService } from './golden-test.service';
 
 @Controller('nlp/testing')
 export class GoldenTestController {
-
-  constructor(
-    private readonly tester: GoldenTestService,
-  ) {}
+  constructor(private readonly tester: GoldenTestService) {}
 
   @Post('golden')
   async run() {
@@ -16,5 +13,4 @@ export class GoldenTestController {
       message: 'Golden dataset executed successfully.',
     };
   }
-
 }

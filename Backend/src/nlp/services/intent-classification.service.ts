@@ -25,29 +25,20 @@ import { ACTION_VERBS } from '../constants/action-verbs';
 
 @Injectable()
 export class IntentClassificationService {
-
-  constructor(
-
-    private readonly scoringEngine: ScoringEngineService,
-
-  ) {}
+  constructor(private readonly scoringEngine: ScoringEngineService) {}
 
   //----------------------------------------------------
   // Initialize Scores
   //----------------------------------------------------
 
   private initializeScores(): Map<IntentType, number> {
-
     const scores = new Map<IntentType, number>();
 
-    Object.values(IntentType).forEach(intent => {
-
+    Object.values(IntentType).forEach((intent) => {
       scores.set(intent, 0);
-
     });
 
     return scores;
-
   }
 
   //----------------------------------------------------
@@ -55,17 +46,13 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private initializeEvidence(): Map<IntentType, string[]> {
-
     const evidence = new Map<IntentType, string[]>();
 
-    Object.values(IntentType).forEach(intent => {
-
+    Object.values(IntentType).forEach((intent) => {
       evidence.set(intent, []);
-
     });
 
     return evidence;
-
   }
 
   //----------------------------------------------------
@@ -73,23 +60,17 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private addScore(
-
     scores: Map<IntentType, number>,
 
     intent: IntentType,
 
     value: number,
-
   ) {
-
     scores.set(
-
       intent,
 
       (scores.get(intent) ?? 0) + value,
-
     );
-
   }
 
   //----------------------------------------------------
@@ -97,187 +78,102 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private addEvidence(
-
     map: Map<IntentType, string[]>,
 
     intent: IntentType,
 
     value: string,
-
   ) {
-
     map.get(intent)?.push(value);
-
   }
 
   //----------------------------------------------------
   // Highest Score
   //----------------------------------------------------
 
-  private highestScore(
-
-    scores: Map<IntentType, number>,
-
-  ): number {
-
+  private highestScore(scores: Map<IntentType, number>): number {
     return Math.max(
-
       ...scores.values(),
 
       0,
-
     );
-
   }
 
   //----------------------------------------------------
   // Ranking
   //----------------------------------------------------
 
-  private buildRanking(
+  private buildRanking(scores: Map<IntentType, number>): IntentScore[] {
+    const max = Math.max(
+      ...scores.values(),
 
-    scores: Map<IntentType, number>,
-
-  ): IntentScore[] {
-
-    const max =
-
-      Math.max(
-
-        ...scores.values(),
-
-        1,
-
-      );
+      1,
+    );
 
     return [...scores.entries()]
 
-      .map(
+      .map(([intent, score]) => ({
+        intent,
 
-        ([intent, score]) => ({
+        score,
 
-          intent,
-
+        confidence: this.scoringEngine.confidence(
           score,
 
-          confidence:
-
-            this.scoringEngine.confidence(
-
-              score,
-
-              max,
-
-            ),
-
-        }),
-
-      )
+          max,
+        ),
+      }))
 
       .sort((a, b) => {
+        const difference = b.score - a.score;
 
-       const difference = b.score - a.score;
+        // If the scores are clearly different,
+        // keep score ordering.
+        if (Math.abs(difference) > 2) {
+          return difference;
+        }
 
-  // If the scores are clearly different,
-  // keep score ordering.
-       if (Math.abs(difference) > 2) {
-
-        return difference;
-
-      }
-
-  // Otherwise use intent priority.
-      return (
-
-       INTENT_PRIORITY[b.intent] -
-
-       INTENT_PRIORITY[a.intent]
-
-      );
-
+        // Otherwise use intent priority.
+        return INTENT_PRIORITY[b.intent] - INTENT_PRIORITY[a.intent];
       });
-   
   }
-  
+
   //----------------------------------------------------
   // Unknown
   //----------------------------------------------------
 
-  private isUnknown(
-
-    ranking: IntentScore[],
-
-  ): boolean {
-
-    return (
-
-      ranking.length === 0 ||
-
-      ranking[0].score === 0
-
-    );
-
+  private isUnknown(ranking: IntentScore[]): boolean {
+    return ranking.length === 0 || ranking[0].score === 0;
   }
 
   //----------------------------------------------------
   // Primary Intent
   //----------------------------------------------------
 
-  private primaryIntent(
-
-    ranking: IntentScore[],
-
-  ): IntentType {
-
-    if (
-
-      this.isUnknown(
-
-        ranking,
-
-      )
-
-    ) {
-
+  private primaryIntent(ranking: IntentScore[]): IntentType {
+    if (this.isUnknown(ranking)) {
       return IntentType.Unknown;
-
     }
 
     return ranking[0].intent;
-
   }
 
   //----------------------------------------------------
   // Secondary Intent
   //----------------------------------------------------
 
-  private secondaryIntent(
-
-    ranking: IntentScore[],
-
-  ): IntentType | null {
-
-    if (
-
-      ranking.length < 2 ||
-
-      ranking[1].score === 0
-
-    ) {
-
+  private secondaryIntent(ranking: IntentScore[]): IntentType | null {
+    if (ranking.length < 2 || ranking[1].score === 0) {
       return null;
-
     }
 
     return ranking[1].intent;
-
   }
-    //----------------------------------------------------
+  //----------------------------------------------------
   // Keyword Matching
   //----------------------------------------------------
 
   private matchKeywords(
-
     processed: ProcessedText,
 
     scores: Map<IntentType, number>,
@@ -285,71 +181,40 @@ export class IntentClassificationService {
     evidence: Map<IntentType, string[]>,
 
     matchedKeywords: string[],
-
   ): number {
-
     let total = 0;
 
     for (const intent of Object.values(IntentType)) {
-
       const keywords = INTENT_KEYWORDS[intent] || [];
 
       for (const keyword of keywords) {
-
-        if (
-
-          processed.filteredTokens.includes(
-
-            keyword.keyword,
-
-          )
-
-        ) {
-
-          const value =
-
-            this.scoringEngine.keyword(
-
-              keyword.weight,
-
-            );
+        if (processed.filteredTokens.includes(keyword.keyword)) {
+          const value = this.scoringEngine.keyword(keyword.weight);
 
           total += value;
 
           this.addScore(
-
             scores,
 
             intent,
 
             value,
-
           );
 
           this.addEvidence(
-
             evidence,
 
             intent,
 
             keyword.keyword,
-
           );
 
-          matchedKeywords.push(
-
-            keyword.keyword,
-
-          );
-
+          matchedKeywords.push(keyword.keyword);
         }
-
       }
-
     }
 
     return total;
-
   }
 
   //----------------------------------------------------
@@ -357,7 +222,6 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private matchSynonyms(
-
     processed: ProcessedText,
 
     scores: Map<IntentType, number>,
@@ -365,69 +229,40 @@ export class IntentClassificationService {
     evidence: Map<IntentType, string[]>,
 
     matchedSynonyms: string[],
-
   ): number {
-
     let total = 0;
 
     for (const intent of Object.values(IntentType)) {
-
-      const synonyms =
-
-        INTENT_SYNONYMS[intent] || [];
+      const synonyms = INTENT_SYNONYMS[intent] || [];
 
       for (const synonym of synonyms) {
-
-        if (
-
-          processed.filteredTokens.includes(
-
-            synonym,
-
-          )
-
-        ) {
-
-          const value =
-
-            this.scoringEngine.synonym();
+        if (processed.filteredTokens.includes(synonym)) {
+          const value = this.scoringEngine.synonym();
 
           total += value;
 
           this.addScore(
-
             scores,
 
             intent,
 
             value,
-
           );
 
           this.addEvidence(
-
             evidence,
 
             intent,
 
             synonym,
-
           );
 
-          matchedSynonyms.push(
-
-            synonym,
-
-          );
-
+          matchedSynonyms.push(synonym);
         }
-
       }
-
     }
 
     return total;
-
   }
 
   //----------------------------------------------------
@@ -435,7 +270,6 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private matchPatterns(
-
     processed: ProcessedText,
 
     scores: Map<IntentType, number>,
@@ -443,75 +277,48 @@ export class IntentClassificationService {
     evidence: Map<IntentType, string[]>,
 
     matchedPatterns: string[],
-
   ): number {
-
     let total = 0;
 
-    const sentence =
-
-      processed.cleanedText.toLowerCase();
+    const sentence = processed.cleanedText.toLowerCase();
 
     for (const intent of Object.values(IntentType)) {
-
-      const patterns =
-
-        INTENT_PATTERNS[intent] || [];
+      const patterns = INTENT_PATTERNS[intent] || [];
 
       for (const pattern of patterns) {
-
         if (
+          TextMatcher.matchesPhrase(
+            sentence,
 
-         TextMatcher.matchesPhrase(
-
-          sentence,
-
-          pattern,
-          
-         )
-
-        ){
-
-          const value =
-
-            this.scoringEngine.phrase();
+            pattern,
+          )
+        ) {
+          const value = this.scoringEngine.phrase();
 
           total += value;
 
           this.addScore(
-
             scores,
 
             intent,
 
             value,
-
           );
 
           this.addEvidence(
-
             evidence,
 
             intent,
 
             pattern,
-
           );
 
-          matchedPatterns.push(
-
-            pattern,
-
-          );
-
+          matchedPatterns.push(pattern);
         }
-
       }
-
     }
 
     return total;
-
   }
 
   //----------------------------------------------------
@@ -519,107 +326,60 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private matchActionVerbs(
-
     processed: ProcessedText,
 
     scores: Map<IntentType, number>,
 
     matchedActionVerbs: string[],
-
   ): number {
-
     let total = 0;
 
     for (const action of ACTION_VERBS) {
-
-      if (
-
-        processed.filteredTokens.includes(
-
-          action.verb,
-
-        )
-
-      ) {
-
-        const value =
-
-          this.scoringEngine.actionVerb(
-
-            action.weight,
-
-          );
+      if (processed.filteredTokens.includes(action.verb)) {
+        const value = this.scoringEngine.actionVerb(action.weight);
 
         total += value;
 
-        matchedActionVerbs.push(
+        matchedActionVerbs.push(action.verb);
 
-          action.verb,
-
-        );
-
-        for (
-
-          const intent of Object.values(
-
-            IntentType,
-
-          )
-
-        ) {
-
+        for (const intent of Object.values(IntentType)) {
           this.addScore(
-
             scores,
 
             intent,
 
             value * 0.2,
-
           );
-
         }
-
       }
-
     }
 
     return total;
-
   }
-    //----------------------------------------------------
+  //----------------------------------------------------
   // Topic Boost
   //----------------------------------------------------
 
   private applyTopicBoost(
-
     topic: TopicResult,
 
     scores: Map<IntentType, number>,
-
   ): number {
-
     if (!topic.topic) {
-
       return 0;
-
     }
 
-    const boost =
-      this.scoringEngine.topic();
+    const boost = this.scoringEngine.topic();
 
     this.addScore(
-
       scores,
 
       IntentType.ExplainTopic,
 
       boost,
-
     );
 
     return boost;
-
   }
 
   //----------------------------------------------------
@@ -627,110 +387,83 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private applyEmotionBoost(
-
     emotion: EmotionResult,
 
     scores: Map<IntentType, number>,
-
   ): number {
-
     let boost = 0;
 
     switch (emotion.emotion) {
-
       case 'Confused':
-
-        boost =
-          this.scoringEngine.emotion();
+        boost = this.scoringEngine.emotion();
 
         this.addScore(
-
           scores,
 
           IntentType.ExplainTopic,
 
           boost,
-
         );
 
         break;
 
       case 'Frustrated':
-
-        boost =
-          this.scoringEngine.emotion();
+        boost = this.scoringEngine.emotion();
 
         this.addScore(
-
           scores,
 
           IntentType.Motivation,
 
           boost,
-
         );
 
         break;
 
       case 'Curious':
-
-        boost =
-          this.scoringEngine.emotion();
+        boost = this.scoringEngine.emotion();
 
         this.addScore(
-
           scores,
 
           IntentType.ExplainTopic,
 
           boost,
-
         );
 
         break;
 
       case 'Motivated':
-
-        boost =
-          this.scoringEngine.emotion();
+        boost = this.scoringEngine.emotion();
 
         this.addScore(
-
           scores,
 
           IntentType.NeedPractice,
 
           boost,
-
         );
 
         break;
 
       case 'Confident':
-
-        boost =
-          this.scoringEngine.emotion();
+        boost = this.scoringEngine.emotion();
 
         this.addScore(
-
           scores,
 
           IntentType.NeedPractice,
 
           boost,
-
         );
 
         break;
 
       default:
-
         boost = 0;
-
     }
 
     return boost;
-
   }
 
   //----------------------------------------------------
@@ -738,86 +471,48 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private applyLearningGoalBoost(
-
     learningGoal: LearningGoalResult,
 
     scores: Map<IntentType, number>,
-
   ): number {
-
-    const boost =
-      this.scoringEngine.learningGoal();
+    const boost = this.scoringEngine.learningGoal();
 
     switch (learningGoal.goal) {
+      case LearningGoal.ConceptUnderstanding:
+        this.addScore(scores, IntentType.ExplainTopic, boost);
 
-  case LearningGoal.ConceptUnderstanding:
+        break;
 
-    this.addScore(
-      scores,
-      IntentType.ExplainTopic,
-      boost,
-    );
+      case LearningGoal.SkillPractice:
+        this.addScore(scores, IntentType.NeedPractice, boost);
 
-    break;
+        break;
 
-  case LearningGoal.SkillPractice:
+      case LearningGoal.Revision:
+        this.addScore(scores, IntentType.StudyPlan, boost);
 
-    this.addScore(
-      scores,
-      IntentType.NeedPractice,
-      boost,
-    );
+        break;
 
-    break;
+      case LearningGoal.StudyPlanning:
+        this.addScore(scores, IntentType.StudyPlan, boost);
 
-  case LearningGoal.Revision:
+        break;
 
-    this.addScore(
-      scores,
-      IntentType.StudyPlan,
-      boost,
-    );
+      case LearningGoal.Recommendation:
+        this.addScore(scores, IntentType.Recommendation, boost);
 
-    break;
+        break;
 
-  case LearningGoal.StudyPlanning:
+      case LearningGoal.Motivation:
+        this.addScore(scores, IntentType.Motivation, boost);
 
-    this.addScore(
-      scores,
-      IntentType.StudyPlan,
-      boost,
-    );
+        break;
 
-    break;
-
-  case LearningGoal.Recommendation:
-
-    this.addScore(
-      scores,
-      IntentType.Recommendation,
-      boost,
-    );
-
-    break;
-
-  case LearningGoal.Motivation:
-
-    this.addScore(
-      scores,
-      IntentType.Motivation,
-      boost,
-    );
-
-    break;
-
-  default:
-
-    return 0;
-
- }
+      default:
+        return 0;
+    }
 
     return boost;
-
   }
 
   //----------------------------------------------------
@@ -825,50 +520,35 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   private applyEntityBoost(
-
     entity: EntityResult,
 
     scores: Map<IntentType, number>,
-
   ): number {
-
     let boost = 0;
 
     if (
-
       entity.techniques.length > 0 ||
-
       entity.concepts.length > 0 ||
-
       entity.operations.length > 0
-
     ) {
-
-      boost =
-
-        this.scoringEngine.topic();
+      boost = this.scoringEngine.topic();
 
       this.addScore(
-
         scores,
 
         IntentType.ExplainTopic,
 
         boost,
-
       );
-
     }
 
     return boost;
-
   }
-    //----------------------------------------------------
+  //----------------------------------------------------
   // Build Reasoning
   //----------------------------------------------------
 
   private buildReasoning(
-
     matchedKeywords: string[],
 
     matchedSynonyms: string[],
@@ -884,135 +564,94 @@ export class IntentClassificationService {
     learningGoal: LearningGoalResult,
 
     entity: EntityResult,
-
   ): ReasoningStep[] {
-
     const reasoning: ReasoningStep[] = [];
 
     if (matchedKeywords.length > 0) {
-
       reasoning.push({
-
         stage: 'Keyword Matching',
 
         message: `Matched ${matchedKeywords.length} intent keywords.`,
 
         scoreContribution: matchedKeywords.length,
-
       });
-
     }
 
     if (matchedSynonyms.length > 0) {
-
       reasoning.push({
-
         stage: 'Synonym Matching',
 
         message: `Matched ${matchedSynonyms.length} synonyms.`,
 
         scoreContribution: matchedSynonyms.length,
-
       });
-
     }
 
     if (matchedPatterns.length > 0) {
-
       reasoning.push({
-
         stage: 'Pattern Matching',
 
         message: `Matched ${matchedPatterns.length} language patterns.`,
 
         scoreContribution: matchedPatterns.length,
-
       });
-
     }
 
     if (matchedActionVerbs.length > 0) {
-
       reasoning.push({
-
         stage: 'Action Verbs',
 
         message: `Detected ${matchedActionVerbs.length} educational action verbs.`,
 
         scoreContribution: matchedActionVerbs.length,
-
       });
-
     }
 
     if (topic.topic) {
-
       reasoning.push({
-
         stage: 'Topic Detection',
 
         message: `Detected topic "${topic.topic}".`,
 
         scoreContribution: 3,
-
       });
-
     }
 
     reasoning.push({
-
       stage: 'Emotion',
 
       message: `Emotion detected: ${emotion.emotion}.`,
 
       scoreContribution: 2,
-
     });
 
     reasoning.push({
-
       stage: 'Learning Goal',
 
       message: `Learning goal: ${learningGoal.goal}.`,
 
       scoreContribution: 3,
-
     });
 
     if (
-
       entity.concepts.length ||
-
       entity.techniques.length ||
-
       entity.operations.length
-
     ) {
-
       reasoning.push({
-
         stage: 'Entity Extraction',
 
-        message:
-
-          `Detected ${
-
-            entity.concepts.length +
-
-            entity.techniques.length +
-
-            entity.operations.length
-
-          } mathematical entities.`,
+        message: `Detected ${
+          entity.concepts.length +
+          entity.techniques.length +
+          entity.operations.length
+        } mathematical entities.`,
 
         scoreContribution: 3,
-
       });
-
     }
 
     return reasoning;
-
   }
 
   //----------------------------------------------------
@@ -1020,7 +659,6 @@ export class IntentClassificationService {
   //----------------------------------------------------
 
   classify(
-
     processed: ProcessedText,
 
     topic: TopicResult,
@@ -1030,16 +668,10 @@ export class IntentClassificationService {
     learningGoal: LearningGoalResult,
 
     entity: EntityResult,
-
   ): IntentClassificationResult {
+    const scores = this.initializeScores();
 
-    const scores =
-
-      this.initializeScores();
-
-    const evidence =
-
-      this.initializeEvidence();
+    const evidence = this.initializeEvidence();
 
     const matchedKeywords: string[] = [];
 
@@ -1051,208 +683,153 @@ export class IntentClassificationService {
 
     //----------------------------------
 
-    const keywordScore =
+    const keywordScore = this.matchKeywords(
+      processed,
 
-      this.matchKeywords(
+      scores,
 
-        processed,
+      evidence,
 
-        scores,
-
-        evidence,
-
-        matchedKeywords,
-
-      );
+      matchedKeywords,
+    );
 
     //----------------------------------
 
-    const synonymScore =
+    const synonymScore = this.matchSynonyms(
+      processed,
 
-      this.matchSynonyms(
+      scores,
 
-        processed,
+      evidence,
 
-        scores,
-
-        evidence,
-
-        matchedSynonyms,
-
-      );
+      matchedSynonyms,
+    );
 
     //----------------------------------
 
-    const patternScore =
+    const patternScore = this.matchPatterns(
+      processed,
 
-      this.matchPatterns(
+      scores,
 
-        processed,
+      evidence,
 
-        scores,
-
-        evidence,
-
-        matchedPatterns,
-
-      );
+      matchedPatterns,
+    );
 
     //----------------------------------
 
-    const actionVerbScore =
+    const actionVerbScore = this.matchActionVerbs(
+      processed,
 
-      this.matchActionVerbs(
+      scores,
 
-        processed,
-
-        scores,
-
-        matchedActionVerbs,
-
-      );
+      matchedActionVerbs,
+    );
 
     //----------------------------------
 
-    const topicBoost =
+    const topicBoost = this.applyTopicBoost(
+      topic,
 
-      this.applyTopicBoost(
-
-        topic,
-
-        scores,
-
-      );
+      scores,
+    );
 
     //----------------------------------
 
-    const emotionBoost =
+    const emotionBoost = this.applyEmotionBoost(
+      emotion,
 
-      this.applyEmotionBoost(
-
-        emotion,
-
-        scores,
-
-      );
+      scores,
+    );
 
     //----------------------------------
 
-    const learningGoalBoost =
+    const learningGoalBoost = this.applyLearningGoalBoost(
+      learningGoal,
 
-      this.applyLearningGoalBoost(
-
-        learningGoal,
-
-        scores,
-
-      );
+      scores,
+    );
 
     //----------------------------------
 
-    const entityBoost =
+    const entityBoost = this.applyEntityBoost(
+      entity,
 
-      this.applyEntityBoost(
+      scores,
+    );
 
-        entity,
-
-        scores,
-
-      );
-  
-      //----------------------------------
+    //----------------------------------
     // Ranking
     //----------------------------------
 
-    const rankedIntents =
-
-      this.scoringEngine.rankIntentScores(
-        scores,
-      );
+    const rankedIntents = this.scoringEngine.rankIntentScores(scores);
     console.table(rankedIntents);
     //----------------------------------
     // Primary / Secondary
     //----------------------------------
 
-    const primaryIntent =
+    const primaryIntent = this.scoringEngine.primaryIntent(
+      rankedIntents,
 
-      this.scoringEngine.primaryIntent(
+      IntentType.Unknown,
+    );
 
-        rankedIntents,
+    const secondaryIntent = this.scoringEngine.secondaryIntent(rankedIntents);
 
-        IntentType.Unknown,
-
-      );
-
-    const secondaryIntent =
-
-      this.scoringEngine.secondaryIntent(
-
-        rankedIntents,
-
-      );
-      
     //----------------------------------
     // Confidence Breakdown
     //----------------------------------
 
-    const confidenceBreakdown =
+    const confidenceBreakdown = this.scoringEngine.buildBreakdown(
+      keywordScore,
 
-      this.scoringEngine.buildBreakdown(
+      synonymScore,
 
-        keywordScore,
+      patternScore,
 
-        synonymScore,
+      actionVerbScore,
 
-        patternScore,
+      topicBoost,
 
-        actionVerbScore,
+      emotionBoost,
 
-        topicBoost,
+      learningGoalBoost,
 
-        emotionBoost,
+      entityBoost,
 
-        learningGoalBoost,
+      0,
 
-        entityBoost,
-
-        0,
-
-        0,
-
-      );
+      0,
+    );
 
     //----------------------------------
     // Reasoning
     //----------------------------------
 
-    const reasoning =
+    const reasoning = this.buildReasoning(
+      matchedKeywords,
 
-      this.buildReasoning(
+      matchedSynonyms,
 
-        matchedKeywords,
+      matchedPatterns,
 
-        matchedSynonyms,
+      matchedActionVerbs,
 
-        matchedPatterns,
+      topic,
 
-        matchedActionVerbs,
+      emotion,
 
-        topic,
+      learningGoal,
 
-        emotion,
-
-        learningGoal,
-
-        entity,
-
-      );
+      entity,
+    );
 
     //----------------------------------
     // Return
     //----------------------------------
 
     return {
-
       primaryIntent,
 
       secondaryIntent,
@@ -1267,19 +844,11 @@ export class IntentClassificationService {
 
       matchedActionVerbs,
 
-      confidence:
-
-        this.scoringEngine.safeConfidence(
-
-          confidenceBreakdown,
-
-        ),
+      confidence: this.scoringEngine.safeConfidence(confidenceBreakdown),
 
       confidenceBreakdown,
 
       reasoning,
-
     };
-
   }
 }

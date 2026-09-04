@@ -1,5 +1,4 @@
 export interface EntityResult {
-
   concepts: string[];
 
   techniques: string[];
@@ -11,5 +10,4 @@ export interface EntityResult {
   numbers: number[];
 
   entities: string[];
-
 }

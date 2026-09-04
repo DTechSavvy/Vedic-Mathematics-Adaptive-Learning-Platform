@@ -1,9 +1,7 @@
 import { LearningGoal } from '../enums/learning-goal.enum';
 
 export const LEARNING_GOAL_KEYWORDS = {
-
   [LearningGoal.ConceptUnderstanding]: [
-
     'explain',
 
     'teach',
@@ -17,11 +15,9 @@ export const LEARNING_GOAL_KEYWORDS = {
     'meaning',
 
     'clarify',
-
   ],
 
   [LearningGoal.SkillPractice]: [
-
     'practice',
 
     'exercise',
@@ -33,25 +29,11 @@ export const LEARNING_GOAL_KEYWORDS = {
     'worksheet',
 
     'solve',
-
   ],
 
-  [LearningGoal.Revision]: [
-
-    'revise',
-
-    'revision',
-
-    'review',
-
-    'forgot',
-
-    'again',
-
-  ],
+  [LearningGoal.Revision]: ['revise', 'revision', 'review', 'forgot', 'again'],
 
   [LearningGoal.ErrorAnalysis]: [
-
     'mistake',
 
     'wrong',
@@ -61,11 +43,9 @@ export const LEARNING_GOAL_KEYWORDS = {
     'why',
 
     'incorrect',
-
   ],
 
   [LearningGoal.StudyPlanning]: [
-
     'study plan',
 
     'schedule',
@@ -75,11 +55,9 @@ export const LEARNING_GOAL_KEYWORDS = {
     'plan',
 
     'prepare',
-
   ],
 
   [LearningGoal.Challenge]: [
-
     'hard',
 
     'harder',
@@ -89,11 +67,9 @@ export const LEARNING_GOAL_KEYWORDS = {
     'challenge',
 
     'difficult',
-
   ],
 
   [LearningGoal.Recommendation]: [
-
     'recommend',
 
     'suggest',
@@ -101,11 +77,9 @@ export const LEARNING_GOAL_KEYWORDS = {
     'next topic',
 
     'what next',
-
   ],
 
   [LearningGoal.Motivation]: [
-
     'motivate',
 
     'demotivated',
@@ -115,7 +89,5 @@ export const LEARNING_GOAL_KEYWORDS = {
     'tired',
 
     'quit',
-
   ],
-
 };
