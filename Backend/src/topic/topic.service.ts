@@ -12,4 +12,38 @@ export class TopicService {
       },
     });
   }
+<<<<<<< Updated upstream
 }
+=======
+
+  async findOne(id: number) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id },
+    });
+
+    if (!topic) {
+      throw new NotFoundException(`Topic with ID ${id} not found`);
+    }
+
+    return topic;
+  }
+
+  async findOneWithLessons(id: number) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id },
+      include: {
+        lessons: {
+          orderBy: { order: 'asc' },
+        },
+        templates: true,
+      },
+    });
+
+    if (!topic) {
+      throw new NotFoundException(`Topic with ID ${id} not found`);
+    }
+
+    return topic;
+  }
+}
+>>>>>>> Stashed changes

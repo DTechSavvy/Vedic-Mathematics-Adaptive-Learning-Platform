@@ -13,6 +13,7 @@ import PracticePage from "./pages/PracticePage";
 import TutorPage from "./pages/TutorPage";
 import ProgressPage from "./pages/ProgressPage";
 import RewardsPage from "./pages/RewardsPage";
+import LessonPage from "./pages/LessonPage";
 import NotFound from "./pages/NotFound";
 
 type AuthContextType = {
@@ -110,8 +111,11 @@ function AppRoutes() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/learn" element={<ProtectedRoute><LearnPage /></ProtectedRoute>} />
+      <Route path="/courses" element={<Navigate to="/learn" replace />} />
+      <Route path="/lessons/:lessonId" element={<ProtectedRoute><LessonPage /></ProtectedRoute>} />
       <Route path="/practice" element={<ProtectedRoute><PracticePage /></ProtectedRoute>} />
       <Route path="/tutor" element={<ProtectedRoute><TutorPage /></ProtectedRoute>} />
+      <Route path="/ai-tutor" element={<Navigate to="/tutor" replace />} />
       <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
       <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

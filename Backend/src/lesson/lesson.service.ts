@@ -20,4 +20,36 @@ export class LessonService {
       },
     });
   }
+<<<<<<< Updated upstream
 }
+=======
+
+  async getLessonContent(id: number) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        examples: {
+          orderBy: { order: 'asc' },
+        },
+        prerequisiteLesson: true,
+        topic: {
+          include: {
+            templates: true,
+            module: {
+              include: {
+                course: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    return lesson;
+  }
+}
+>>>>>>> Stashed changes

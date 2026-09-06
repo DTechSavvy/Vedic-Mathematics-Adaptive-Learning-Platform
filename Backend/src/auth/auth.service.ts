@@ -108,4 +108,16 @@ export class AuthService {
 
     return this.createAuthResponse(createdUser);
   }
+<<<<<<< Updated upstream
 }
+=======
+
+  async getProfile(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      return null;
+    }
+    return this.sanitizeUser(user);
+  }
+}
+>>>>>>> Stashed changes
