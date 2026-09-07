@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class LessonService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getLessons(topicId: number) {
     return this.prisma.lesson.findMany({
@@ -20,9 +20,6 @@ export class LessonService {
       },
     });
   }
-<<<<<<< Updated upstream
-}
-=======
 
   async getLessonContent(id: number) {
     const lesson = await this.prisma.lesson.findUnique({
@@ -52,4 +49,3 @@ export class LessonService {
     return lesson;
   }
 }
->>>>>>> Stashed changes

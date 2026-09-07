@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TopicService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getTopics(moduleId: number) {
     return this.prisma.topic.findMany({
@@ -12,9 +12,6 @@ export class TopicService {
       },
     });
   }
-<<<<<<< Updated upstream
-}
-=======
 
   async findOne(id: number) {
     const topic = await this.prisma.topic.findUnique({
@@ -46,4 +43,3 @@ export class TopicService {
     return topic;
   }
 }
->>>>>>> Stashed changes

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { KnowledgeResult } from '../interfaces/knowledge-result.interface';
+import type { KnowledgeResult } from '../interfaces/knowledge-result.interface';
 
 @Injectable()
 export class KnowledgeService {
@@ -8,7 +8,7 @@ export class KnowledgeService {
   private readonly cache = new Map<string, { data: KnowledgeResult[]; expiresAt: number }>();
   private readonly CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache for stable curriculum data
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Main knowledge retrieval method based on context and extracted NLP entities
@@ -165,7 +165,14 @@ export class KnowledgeService {
     query?: string | null,
   ): Promise<KnowledgeResult | null> {
     try {
-      let topic = null;
+      type TopicWithRelations = Awaited<
+        ReturnType<typeof this.prisma.topic.findUnique>
+      > & {
+        lessons: Array<{ content: string }>;
+        templates: Array<{ explanation: string | null }>;
+      };
+
+      let topic: TopicWithRelations | null = null;
       if (topicId) {
         topic = await this.prisma.topic.findUnique({
           where: { id: topicId },
