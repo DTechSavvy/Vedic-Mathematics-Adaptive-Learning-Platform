@@ -1,162 +1,135 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import {
+  api,
+  getStoredToken,
+  StructuredTutorResponse,
+  TutorConversationSummary
+} from "@/lib/api";
+import {
+  Send,
+  Bot,
+  User,
+  Sparkles,
+  History,
+  PlusCircle,
+  Clock,
+  BookOpen,
+  ArrowRight,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  math?: any;
+  sourceRefs?: any[];
 }
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    role: "assistant",
-    content: `🙏 **Namaste! I'm your Vedic Mathematics AI Tutor.**
+const INITIAL_GREETING: Message = {
+  role: "assistant",
+  content: `🙏 **Namaste! I'm your Vedic Mathematics AI Tutor.**
 
-I'm here to help you master the ancient art of Vedic Math! I can:
+I'm here to help you master ancient Indian speed mathematics with contextual guidance:
 
-- 📚 **Teach you any of the 16 Vedic Sutras** with step-by-step explanations
-- 🔢 **Solve problems** using Vedic methods and show you every step
-- ❓ **Answer your doubts** — just ask me anything about Vedic Mathematics!
-- 💡 **Give you tips** for faster mental calculations
+- 📚 **Explore the 16 Sutras & 13 Sub-Sutras** with step-by-step algorithms
+- 🔢 **Solve complex mental calculations** without manual longhand
+- 💡 **Diagnose calculation mistakes** and learn alternative shortcuts
+- ✍️ **Get Socratic hints** without spoiling final answers
 
-What would you like to learn today? Try asking:
-- *"Teach me the Nikhilam sutra"*
-- *"How do I multiply 97 × 96 using Vedic math?"*
-- *"What is Urdhva-Tiryagbhyam?"*`,
-  },
-];
-
-// Local AI responses for demo (will be replaced with Cloud AI)
-function getLocalResponse(input: string): string {
-  const lower = input.toLowerCase();
-  
-  if (lower.includes("nikhilam") || lower.includes("97") || lower.includes("96")) {
-    return `## Nikhilam Navatashcaramam Dashatah
-**"All from 9 and the last from 10"**
-
-This sutra is perfect for multiplying numbers close to a base (like 10, 100, 1000).
-
-### Example: 97 × 96
-
-**Step 1:** Choose base = 100
-
-**Step 2:** Find deficiencies:
-- 97 → deficit = 3 (100 - 97)
-- 96 → deficit = 4 (100 - 96)
-
-**Step 3:** Cross-subtract (either way gives the same result):
-- 97 - 4 = **93** ← left part
-- OR 96 - 3 = **93** ✓
-
-**Step 4:** Multiply deficiencies:
-- 3 × 4 = **12** ← right part
-
-**Answer: 93|12 = 9312** ✅
-
-> 💡 **Pro tip:** This works amazingly well for numbers near 100, 1000, etc. Try 998 × 997 yourself!
-
-Would you like to practice this sutra or learn another one?`;
-  }
-  
-  if (lower.includes("urdhva") || lower.includes("vertically") || lower.includes("crosswise")) {
-    return `## Urdhva-Tiryagbhyam
-**"Vertically and Crosswise"**
-
-This is the most versatile sutra — it works for ALL multiplications!
-
-### Example: 23 × 14
-
-Think of it in three steps:
-
-**Step 1 — Vertical (ones):**
-3 × 4 = 12 → write 2, carry 1
-
-**Step 2 — Crosswise (tens):**
-(2 × 4) + (3 × 1) = 8 + 3 = 11 + carry 1 = 12 → write 2, carry 1
-
-**Step 3 — Vertical (hundreds):**
-2 × 1 = 2 + carry 1 = 3
-
-**Answer: 322** ✅
-
-> 🧠 **Mental math hack:** With practice, you can do this entirely in your head, left to right!
-
-Want me to walk through a harder example?`;
-  }
-
-  if (lower.includes("square") || lower.includes("ekadhik") || lower.includes("ending in 5")) {
-    return `## Ekadhikena Purvena
-**"By one more than the previous one"**
-
-The fastest way to square numbers ending in 5!
-
-### Example: 75²
-
-**Step 1:** The last two digits are always **25**
-
-**Step 2:** Take the digit(s) before 5: **7**
-
-**Step 3:** Multiply by one more than itself: 7 × 8 = **56**
-
-**Answer: 56|25 = 5625** ✅
-
-### Try these:
-- 35² = 3×4 | 25 = **1225**
-- 85² = 8×9 | 25 = **7225**
-- 115² = 11×12 | 25 = **13225**
-
-> ⚡ You can calculate these in under 2 seconds with practice!
-
-Shall I teach you another squaring trick?`;
-  }
-
-  if (lower.includes("teach") || lower.includes("learn") || lower.includes("start")) {
-    return `Great enthusiasm! 🔥 Here are the sutras I can teach you:
-
-### Beginner Level
-1. 🔢 **Nikhilam** — Multiply numbers near a base
-2. ✖️ **Urdhva-Tiryagbhyam** — Universal multiplication
-3. 5️⃣ **Ekadhikena Purvena** — Square numbers ending in 5
-
-### Intermediate Level
-4. ➗ **Paraavartya Yojayet** — Division made easy
-5. ² **Yavadunam** — Quick squaring technique
-
-### Advanced Level
-6. 📐 **Anurupye Shunyamanyat** — Simultaneous equations
-
-Which one catches your eye? Just tell me the name or number!`;
-  }
-
-  return `That's a great question! 🤔
-
-Let me help you with that. In Vedic Mathematics, we approach problems differently — using mental shortcuts derived from 16 ancient sutras.
-
-Here's what I suggest:
-1. **Tell me the specific problem** you want to solve, and I'll show you the Vedic method
-2. **Ask me about a sutra** and I'll explain it with examples
-3. **Say "teach me"** to see all available sutras
-
-The beauty of Vedic Math is that it makes complex calculations feel like magic! ✨
-
-What would you like to explore?`;
-}
+What would you like to explore today?`,
+};
 
 export default function TutorPage() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const promptParam = searchParams.get("prompt");
+  const topicIdParam = searchParams.get("topicId");
+  const lessonIdParam = searchParams.get("lessonId");
+  const courseIdParam = searchParams.get("courseId");
+  const moduleIdParam = searchParams.get("moduleId");
+
+  const [messages, setMessages] = useState<Message[]>([INITIAL_GREETING]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
+  // History Drawer state
+  const [showHistory, setShowHistory] = useState(false);
+  const [conversations, setConversations] = useState<TutorConversationSummary[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const initialPromptSent = useRef(false);
+
+  // Auto-scroll chat
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Load conversation history on mount
+  useEffect(() => {
+    loadConversationHistory();
+  }, []);
+
+  // Handle inbound prompt from Lesson or Practice
+  useEffect(() => {
+    if (promptParam && !initialPromptSent.current) {
+      initialPromptSent.current = true;
+      handleSend(promptParam);
+    }
+  }, [promptParam]);
+
+  const loadConversationHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      const list = await api.getTutorConversations(20);
+      setConversations(list);
+    } catch (err) {
+      console.warn("Could not fetch conversation history:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleSelectConversation = async (id: string) => {
+    try {
+      setIsTyping(true);
+      const conv = await api.getTutorConversation(id);
+      setConversationId(conv.id);
+
+      if (conv.messages && conv.messages.length > 0) {
+        const mapped: Message[] = conv.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+        setMessages(mapped);
+      }
+      setShowHistory(false);
+    } catch (err) {
+      console.error("Failed to load conversation:", err);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleNewConversation = () => {
+    setConversationId(null);
+    setMessages([INITIAL_GREETING]);
+    setSuggestedActions([]);
+    setInput("");
+    setShowHistory(false);
+  };
 
   const handleSend = async (messageText?: string) => {
     const textToSend = (messageText || input).trim();
@@ -169,73 +142,43 @@ export default function TutorPage() {
     setSuggestedActions([]);
 
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("access_token");
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${apiUrl}/ai-tutor/message`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          message: textToSend,
-          conversationId: conversationId || undefined,
-        }),
+      const response: StructuredTutorResponse = await api.sendTutorMessage({
+        message: textToSend,
+        conversationId: conversationId || undefined,
+        courseId: courseIdParam ? Number(courseIdParam) : undefined,
+        moduleId: moduleIdParam ? Number(moduleIdParam) : undefined,
+        topicId: topicIdParam ? Number(topicIdParam) : undefined,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.conversationId) {
-          setConversationId(data.conversationId);
-        }
-        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
-        if (Array.isArray(data.suggestedActions)) {
-          setSuggestedActions(data.suggestedActions);
-        }
-      } else {
-        // Fallback gracefully if API returned error (e.g., 503 unconfigured or 401 unauthenticated)
-        const errorData = await response.json().catch(() => ({}));
-        if (response.status === 401) {
-          const localReply = getLocalResponse(textToSend);
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `${localReply}\n\n*(Note: Log in to save your tutor conversation history and sync with your personal mastery progress!)*`,
-            },
-          ]);
-        } else if (response.status === 503) {
-          const localReply = getLocalResponse(textToSend);
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `${localReply}\n\n*(AI cloud provider is currently offline; providing offline Vedic guidance)*`,
-            },
-          ]);
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: errorData.message || "I encountered a momentary issue processing that. Please try again.",
-            },
-          ]);
-        }
+      if (response.conversationId) {
+        setConversationId(response.conversationId);
       }
-    } catch {
-      // Offline fallback
-      const localReply = getLocalResponse(textToSend);
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `${localReply}\n\n*(Serving from offline Vedic math curriculum engine)*`,
+          content: response.response,
+          math: response.math,
+          sourceRefs: response.sourceRefs,
+        },
+      ]);
+
+      if (Array.isArray(response.suggestedActions) && response.suggestedActions.length > 0) {
+        setSuggestedActions(response.suggestedActions);
+      }
+
+      // Refresh conversation list in background
+      loadConversationHistory();
+    } catch (err: any) {
+      console.error("AI Tutor message failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            err.message ||
+            "I encountered a momentary issue processing your request. Please ensure the backend is connected.",
         },
       ]);
     } finally {
@@ -243,115 +186,241 @@ export default function TutorPage() {
     }
   };
 
+  const handleActionClick = (action: string) => {
+    if (action.toLowerCase().includes("practice")) {
+      navigate("/practice");
+    } else {
+      handleSend(action);
+    }
+  };
+
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-3.5rem)] flex-col lg:h-screen">
-        {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border px-6 py-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-saffron">
-            <Bot className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="font-display font-semibold text-foreground">Vedic AI Tutor</h1>
-            <div className="flex items-center gap-1 text-xs text-accent">
-              <Sparkles className="h-3 w-3" />
-              <span>Online — adaptive Vedic guidance</span>
+      <div className="flex h-[calc(100vh-3.5rem)] lg:h-screen relative overflow-hidden bg-background">
+        {/* Main Chat Column */}
+        <div className="flex flex-1 flex-col h-full min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border bg-card px-6 py-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-saffron text-primary-foreground shadow-soft">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+                  VedicMind AI Tutor <Sparkles className="h-4 w-4 text-primary" />
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  {conversationId ? `Active Session (${conversationId.slice(0, 8)}...)` : "Live Socratic Math Mentor"}
+                </p>
+              </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleNewConversation}
+                size="sm"
+                variant="outline"
+                className="text-xs font-semibold"
+                title="Start a new conversation"
+              >
+                <PlusCircle className="h-4 w-4 mr-1.5" /> New Session
+              </Button>
+              <Button
+                onClick={() => setShowHistory(!showHistory)}
+                size="sm"
+                variant="ghost"
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                title="View previous conversations"
+              >
+                <History className="h-4 w-4 mr-1.5" /> History
+              </Button>
+            </div>
+          </div>
+
+          {/* Context Banner if opened from a specific topic/lesson */}
+          {(topicIdParam || lessonIdParam) && (
+            <div className="border-b border-primary/20 bg-primary/5 px-6 py-2 flex items-center justify-between text-xs text-primary font-medium">
+              <span className="flex items-center gap-1.5">
+                <BookOpen className="h-3.5 w-3.5" /> Context-Aware Session: Linked to active Vedic lesson
+              </span>
+              <span className="text-[10px] text-muted-foreground">Tutor has curriculum context</span>
+            </div>
+          )}
+
+          {/* Messages Area */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
+            {messages.map((msg, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.role === "assistant" && (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg gradient-saffron text-primary-foreground shadow-sm">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-2xl rounded-2xl p-4 text-sm shadow-soft ${
+                    msg.role === "user"
+                      ? "gradient-saffron text-primary-foreground font-medium rounded-tr-none"
+                      : "bg-card border border-border text-foreground rounded-tl-none leading-relaxed"
+                  }`}
+                >
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+
+                  {/* Math Feedback Badge if provided */}
+                  {msg.math && msg.math.expression && (
+                    <div className="mt-3 rounded-lg bg-muted/40 p-2 text-xs font-mono border border-border flex items-center justify-between">
+                      <span>Expression: {msg.math.expression}</span>
+                      {msg.math.isCorrect !== undefined && (
+                        <span className={msg.math.isCorrect ? "text-accent font-bold" : "text-destructive font-bold"}>
+                          {msg.math.isCorrect ? "✓ Verified" : "✗ Discrepancy"}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {msg.role === "user" && (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground shadow-sm">
+                    <User className="h-4 w-4" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+
+            {isTyping && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg gradient-saffron text-primary-foreground">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <div className="rounded-2xl rounded-tl-none border border-border bg-card p-4 shadow-soft">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce" />
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
+                    <span className="text-xs text-muted-foreground ml-2">Vedic Tutor is thinking...</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Suggested Action Chips */}
+          {suggestedActions.length > 0 && (
+            <div className="border-t border-border bg-card/60 px-6 py-2.5 flex items-center gap-2 overflow-x-auto">
+              <span className="text-[11px] font-semibold text-muted-foreground shrink-0 flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-primary" /> Suggested:
+              </span>
+              {suggestedActions.map((action, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleActionClick(action)}
+                  className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap"
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Chat Input Bar */}
+          <div className="border-t border-border bg-card p-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="flex gap-2 max-w-4xl mx-auto"
+            >
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about a Vedic sutra, problem, or mental shortcut (e.g. 'How do I multiply 98 × 97?')..."
+                disabled={isTyping}
+                className="flex-1 rounded-xl border-border bg-muted/20 text-sm focus:border-primary shadow-soft h-12"
+              />
+              <Button
+                type="submit"
+                disabled={!input.trim() || isTyping}
+                className="gradient-saffron text-primary-foreground font-semibold rounded-xl h-12 px-6 shadow-soft shrink-0"
+              >
+                {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </form>
           </div>
         </div>
 
-        {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg, i) => (
+        {/* Conversation History Drawer */}
+        <AnimatePresence>
+          {showHistory && (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute right-0 top-0 bottom-0 w-80 border-l border-border bg-card p-4 shadow-xl z-20 flex flex-col"
             >
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                msg.role === "assistant" ? "gradient-saffron" : "bg-secondary"
-              }`}>
-                {msg.role === "assistant" ? (
-                  <Bot className="h-4 w-4 text-primary-foreground" />
-                ) : (
-                  <User className="h-4 w-4 text-secondary-foreground" />
-                )}
+              <div className="flex items-center justify-between pb-4 border-b border-border mb-3">
+                <h3 className="font-display font-bold text-sm text-foreground flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" /> Previous Sessions
+                </h3>
+                <Button
+                  onClick={() => setShowHistory(false)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
-              <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                msg.role === "assistant"
-                  ? "bg-card border border-border shadow-soft"
-                  : "gradient-indigo text-secondary-foreground"
-              }`}>
-                {msg.role === "assistant" ? (
-                  <div className="prose prose-sm max-w-none text-foreground">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+
+              <Button
+                onClick={handleNewConversation}
+                size="sm"
+                className="w-full mb-3 text-xs gradient-saffron text-primary-foreground font-semibold"
+              >
+                <PlusCircle className="h-3.5 w-3.5 mr-1.5" /> Start New Session
+              </Button>
+
+              <div className="flex-1 overflow-y-auto space-y-2">
+                {loadingHistory ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary mx-auto mb-2" />
+                    Loading history...
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground italic">
+                    No past sessions found. Your conversations will be saved here automatically!
                   </div>
                 ) : (
-                  <p className="text-sm">{msg.content}</p>
+                  conversations.map((conv) => (
+                    <button
+                      key={conv.id}
+                      onClick={() => handleSelectConversation(conv.id)}
+                      className={`w-full text-left p-3 rounded-lg border text-xs transition-all ${
+                        conversationId === conv.id
+                          ? "bg-primary/10 border-primary text-foreground font-semibold"
+                          : "border-border hover:bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div className="truncate font-medium text-foreground mb-1">
+                        {conv.title || "Vedic Mathematics Session"}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground flex items-center justify-between">
+                        <span>{new Date(conv.updatedAt || conv.createdAt).toLocaleDateString()}</span>
+                        <MessageSquare className="h-3 w-3" />
+                      </div>
+                    </button>
+                  ))
                 )}
-              </div>
-            </motion.div>
-          ))}
-          {isTyping && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full gradient-saffron">
-                <Bot className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <div className="rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
-                </div>
               </div>
             </motion.div>
           )}
-        </div>
-
-        {/* Suggested Actions */}
-        {suggestedActions.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-6 py-2 border-t border-border/50 bg-background/50">
-            {suggestedActions.map((action, idx) => (
-              <Button
-                key={idx}
-                variant="outline"
-                size="sm"
-                className="text-xs h-7 rounded-full"
-                onClick={() => {
-                  const queryText = action.replace(/_/g, " ").toLowerCase();
-                  handleSend(queryText);
-                }}
-              >
-                ⚡ {action.replace(/_/g, " ")}
-              </Button>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
-        <div className="border-t border-border p-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex gap-2"
-          >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me about Vedic Mathematics..."
-              className="flex-1"
-            />
-            <Button type="submit" variant="hero" size="icon" disabled={!input.trim()}>
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            💡 Try: "Teach me Nikhilam" or "Give me a hint for 98 × 97"
-          </p>
-        </div>
+        </AnimatePresence>
       </div>
     </AppLayout>
   );

@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class LessonService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getLessons(topicId: number) {
     return this.prisma.lesson.findMany({
@@ -36,6 +36,16 @@ export class LessonService {
           orderBy: { order: 'asc' },
         },
         prerequisiteLesson: true,
+        topic: {
+          include: {
+            templates: true,
+            module: {
+              include: {
+                course: true,
+              },
+            },
+          },
+        },
       },
     });
 

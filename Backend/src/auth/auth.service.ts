@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   private sanitizeUser(user: any) {
     const { password, ...safeUser } = user;
@@ -125,4 +125,13 @@ export class AuthService {
 
     return this.createAuthResponse(createdUser);
   }
+
+  async getProfile(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      return null;
+    }
+    return this.sanitizeUser(user);
+  }
+
 }

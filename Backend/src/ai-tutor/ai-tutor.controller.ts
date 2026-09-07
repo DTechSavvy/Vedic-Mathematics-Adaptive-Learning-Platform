@@ -15,8 +15,9 @@ import { AiTutorService } from './ai-tutor.service';
 import { SendTutorMessageDto } from './dto/tutor-message.dto';
 import { StructuredTutorResponseDto } from './dto/tutor-response.dto';
 import type { StudentProfile } from './interfaces/student-profile.interface';
-import { TutorResponse } from './interfaces/tutor-response.interface';
+import type { TutorResponse } from './interfaces/tutor-response.interface';
 import { ConversationService } from './services/conversation.service';
+
 
 import { AiRateLimitGuard } from './guards/ai-rate-limit.guard';
 
@@ -26,7 +27,7 @@ export class AiTutorController {
   constructor(
     private readonly aiTutorService: AiTutorService,
     private readonly conversationService: ConversationService,
-  ) {}
+  ) { }
 
   /**
    * Primary Production Endpoint: Process an interactive student tutor message

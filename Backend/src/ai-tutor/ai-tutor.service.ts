@@ -23,6 +23,8 @@ import { StudyPlannerService } from './services/study-planner.service';
 import { TutorContextService } from './services/tutor-context.service';
 import { TutorNlpService } from './services/tutor-nlp.service';
 import { StudentProfileBuilderService } from './student-profile-builder.service';
+import type { MathVerificationResult } from './interfaces/math-verification.interface';
+
 
 @Injectable()
 export class AiTutorService {
@@ -44,7 +46,7 @@ export class AiTutorService {
     private readonly recommendationService: RecommendationService,
     private readonly motivationService: MotivationService,
     private readonly profileBuilder: StudentProfileBuilderService,
-  ) {}
+  ) { }
 
   /**
    * Primary Production Pipeline:
