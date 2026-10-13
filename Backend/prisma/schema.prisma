@@ -30,10 +30,20 @@ model User {
   xp     Int @default(0)
   level  Int @default(1)
   streak Int @default(0)
+  coins  Int @default(0)
+  stars  Int @default(0)
+  wisdomStones Int @default(0)
+  learningLevel String @default("BEGINNER")
 
   lastActiveDate DateTime?
 
   achievements Achievement[]
+  coinTransactions CoinTransaction[]
+  purchases        UserPurchase[]
+  dailyGoals       DailyGoalProgress[]
+  lessonProgress   LessonProgress[]
+  pageProgress     LearningPageProgress[]
+  entitlements     UserEntitlement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,6 +103,7 @@ model Topic {
 
   progress      UserProgress[]
   knowledgeDocs KnowledgeDocument[]
+  resources     LearningResource[]
 
   createdAt DateTime @default(now())
 }
@@ -122,6 +133,9 @@ model Lesson {
   dependentLessons     Lesson[] @relation("LessonPrerequisite")
 
   examples LessonExample[]
+  progress LessonProgress[]
+  pages    LearningPage[]
+  resources LearningResource[]
 
   createdAt DateTime @default(now())
 }
@@ -203,6 +217,11 @@ model QuestionAttempt {
 
   timeTakenSeconds Int?
 
+  questionType   String?
+  difficulty     String?
+  sutraId        String?
+  isValidAttempt Boolean @default(true)
+
   createdAt           DateTime           @default(now())
   GeneratedQuestion   GeneratedQuestion? @relation(fields: [generatedQuestionId], references: [id])
   generatedQuestionId Int?
@@ -226,14 +245,96 @@ model UserProgress {
   @@unique([userId, topicId])
 }
 
+model AchievementDefinition {
+  id              String         @id
+  title           String
+  description     String
+  category        String
+  icon            String
+  rarity          String         @default("COMMON")
+  targetValue     Float          @default(1)
+  rewardXp        Int            @default(50)
+  rewardCoins     Int            @default(25)
+  rewardStars     Int            @default(0)
+  rewardStones    Int            @default(0)
+  order           Int            @default(0)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+
+  achievements    Achievement[]
+}
+
 model Achievement {
+  id              Int                    @id @default(autoincrement())
+  userId          Int
+  achievementId   String?
+  definition      AchievementDefinition? @relation(fields: [achievementId], references: [id])
+  title           String
+  description     String
+  progress        Float                  @default(0)
+  isCompleted     Boolean                @default(false)
+  earnedAt        DateTime               @default(now())
+
+  user            User                   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, title])
+  @@index([userId, isCompleted])
+}
+
+model CoinTransaction {
   id          Int      @id @default(autoincrement())
   userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Int
+  type        String
+  source      String
+  referenceId String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model StoreItem {
+  id          String         @id
   title       String
   description String
-  earnedAt    DateTime @default(now())
+  category    String
+  costCoins   Int            @default(0)
+  costStones  Int            @default(0)
+  icon        String
+  metadata    Json?
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  purchases   UserPurchase[]
+}
+
+model UserPurchase {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  itemId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item        StoreItem @relation(fields: [itemId], references: [id])
+  purchasedAt DateTime  @default(now())
+  expiresAt   DateTime?
+
+  @@index([userId])
+}
+
+model DailyGoalProgress {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          String
+  goalType      String
+  currentVal    Float    @default(0)
+  targetVal     Float    @default(0)
+  completed     Boolean  @default(false)
+  rewardClaimed Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, date, goalType])
+  @@index([userId, date])
 }
 
 model KnowledgeDocument {
@@ -285,3 +386,135 @@ model TutorMessage {
 
   @@index([conversationId, createdAt])
 }
+
+model Sutra {
+  id                   String   @id
+  number               Int      @unique
+  name                 String
+  aliases              String[] @default([])
+  meaning              String
+  description          String   @db.Text
+  mathematicalIdea     String   @db.Text
+  whenToUse            String   @db.Text
+  whenNotToUse         String   @db.Text
+  prerequisites        String[] @default([])
+  example              Json
+  commonMistakes       String[] @default([])
+  practiceGuidance     String   @db.Text
+  relatedSutras        String[] @default([])
+  practiceTemplateType String?
+  difficulty           String   @default("beginner")
+  icon                 String   @default("🕉️")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model LessonProgress {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    Int
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status            String    @default("OPENED") // "OPENED" | "IN_PROGRESS" | "COMPLETED"
+  lastVisitedPageId Int?
+  openedAt          DateTime  @default(now())
+  completedAt       DateTime?
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId, status])
+}
+
+model UserEntitlement {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String    // "HINT_TOKEN" | "SOLUTION_TOKEN" | "RETRY_TOKEN" | "PRACTICE_PACK" | "XP_BOOST"
+  balance     Int       @default(0)
+  activeUntil DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, type])
+  @@index([userId])
+}
+
+model LearningPage {
+  id                 Int           @id @default(autoincrement())
+  lessonId           Int
+  lesson             Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title              String
+  slug               String
+  pageType           String        @default("CONTENT") // "INTRODUCTION" | "THEORY" | "SUTRA_TECHNIQUE" | "WORKED_EXAMPLES" | "COMMON_ERRORS" | "APPLICATIONS" | "SUMMARY" | "PRACTICE_PREP"
+  order              Int           @default(1)
+  contentMarkdown    String        @db.Text
+  learningObjectives String[]      @default([])
+  estimatedMinutes   Int           @default(5)
+  difficulty         Difficulty    @default(EASY)
+  isPublished        Boolean       @default(true)
+  version            Int           @default(1)
+  metadata           Json?
+
+  resources          LearningResource[]
+  progress           LearningPageProgress[]
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([lessonId, order])
+  @@unique([lessonId, slug])
+  @@index([lessonId, isPublished])
+}
+
+model LearningResource {
+  id                Int           @id @default(autoincrement())
+  pageId            Int?
+  page              LearningPage? @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  topicId           Int?
+  topic             Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  lessonId          Int?
+  lesson            Lesson?       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  title             String
+  description       String?       @db.Text
+  resourceType      String        // "EXTERNAL_ARTICLE" | "YOUTUBE_VIDEO" | "RESEARCH_PAPER" | "HISTORICAL_TEXT" | "NOTE"
+  url               String
+  embedUrl          String?
+  provider          String?
+  authorOrPublisher String?
+  attributionText   String?
+  licenseType       String?
+  licenseUrl        String?
+  sourceDate        String?
+  isVerified        Boolean       @default(true)
+  isActive          Boolean       @default(true)
+  metadata          Json?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([pageId])
+  @@index([topicId])
+  @@index([lessonId])
+}
+
+model LearningPageProgress {
+  id               Int          @id @default(autoincrement())
+  userId           Int
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId           Int
+  page             LearningPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  isCompleted      Boolean      @default(false)
+  timeSpentSeconds Int          @default(0)
+  lastVisitedAt    DateTime     @default(now())
+  completedAt      DateTime?
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([userId, pageId])
+  @@index([userId, isCompleted])
+}
+

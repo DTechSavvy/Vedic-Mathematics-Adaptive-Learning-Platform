@@ -29,6 +29,18 @@ export class CourseService {
       include: {
         modules: {
           orderBy: { order: 'asc' },
+          include: {
+            topics: {
+              orderBy: { order: 'asc' },
+              include: {
+                lessons: {
+                  orderBy: { order: 'asc' },
+                  include: { examples: { orderBy: { order: 'asc' } } },
+                },
+                templates: true,
+              },
+            },
+          },
         },
       },
     });

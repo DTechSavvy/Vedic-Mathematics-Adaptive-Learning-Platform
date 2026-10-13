@@ -24,7 +24,11 @@ class EnvironmentVariables {
   DATABASE_URL: string;
 
   @IsString()
-  CLIENT_URL = 'http://localhost:5173';
+  CLIENT_URL = 'http://localhost:8080';
+
+  @IsOptional()
+  @IsString()
+  BACKEND_URL = 'http://localhost:3000';
 
   @IsString()
   JWT_EXPIRES_IN = '1d';
@@ -35,7 +39,7 @@ class EnvironmentVariables {
 
   @IsOptional()
   @IsString()
-  AI_MODEL_NAME = 'gemini-3.7-flash';
+  AI_MODEL_NAME = 'gemini-3.8-flash';
 
   @IsOptional()
   @IsInt()

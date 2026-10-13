@@ -57,6 +57,58 @@ export class GuardrailService {
     return content;
   }
 
+  /**
+   * Domain check: Verifies if student input is completely off-topic (e.g. asking for unrelated coding, politics, recipes, video games, etc.)
+   */
+  isOffTopic(message: string): { isOffTopic: boolean; redirectResponse?: string } {
+    if (!message || message.trim().length === 0) {
+      return { isOffTopic: false };
+    }
+
+    const text = message.trim().toLowerCase();
+
+    // Whitelist: common conversational greetings and Vedic / math terms
+    const mathWhitelist = [
+      'hi', 'hello', 'hey', 'namaste', 'greetings', 'help', 'who are you', 'what can you do',
+      'math', 'sutra', 'nikhilam', 'urdhva', 'ekadhikena', 'paravartya', 'yavadunam', 'dwandwa',
+      'vinculum', 'anurupyena', 'multiply', 'divide', 'square', 'cube', 'root', 'addition',
+      'subtraction', 'fraction', 'algebra', 'decimal', 'number', 'calculate', 'formula',
+      'problem', 'hint', 'solve', 'practice', 'quiz', 'exam', 'step', 'vedic', 'speed',
+    ];
+
+    const hasMathTerm = mathWhitelist.some((w) => text.includes(w)) || /\d+/.test(text);
+
+    // If it contains math words or digits or is a greeting, it's NOT off-topic
+    if (hasMathTerm) {
+      return { isOffTopic: false };
+    }
+
+    // Explicit off-topic categories
+    const offTopicPatterns = [
+      /\b(?:recipe|cook|bake|cake|pasta|pizza|ingredients|dinner|lunch|breakfast)\b/i,
+      /\b(?:president|prime minister|election|parliament|congress|democrat|republican|political|politics)\b/i,
+      /\b(?:movie|actor|actress|hollywood|bollywood|film|cinema|netflix|series)\b/i,
+      /\b(?:football|cricket|soccer|nba|messi|ronaldo|ipl|fifa|world cup)\b/i,
+      /\b(?:fortnite|minecraft|gta|roblox|playstation|xbox|video game)\b/i,
+      /\b(?:write\s+(?:a\s+)?(?:python|javascript|java|c\+\+|html|css|php)\s+(?:script|code|program|scraper|app))\b/i,
+      /\b(?:crypto|bitcoin|ethereum|stock\s*market|forex|investing)\b/i,
+    ];
+
+    for (const pattern of offTopicPatterns) {
+      if (pattern.test(text)) {
+        return {
+          isOffTopic: true,
+          redirectResponse:
+            "I specialize exclusively in **Vedic Mathematics** and high-speed mental calculation! " +
+            "While I cannot assist with non-mathematical topics like cooking, politics, sports, or entertainment, " +
+            "I would love to help you master lightning-fast mental math. Would you like to explore a Vedic Sutra like *Nikhilam* (base multiplication) or *Urdhva Tiryagbhyam* (crosswise calculation)?",
+        };
+      }
+    }
+
+    return { isOffTopic: false };
+  }
+
   private sanitizeSensitiveLeaks(text: string): string {
     const sensitivePatterns = [
       /GEMINI_API_KEY/gi,

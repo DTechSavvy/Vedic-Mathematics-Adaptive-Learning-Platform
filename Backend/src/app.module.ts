@@ -16,6 +16,9 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 import { NlpModule } from './nlp/nlp.module';
 import { CurriculumModule } from './curriculum/curriculum.module';
+import { SutraModule } from './sutra/sutra.module';
+import { GamificationModule } from './gamification/gamification.module';
+import { MasteryModule } from './progress/mastery.module';
 import { validateEnvironment } from './config/env.validation';
 
 @Module({
@@ -35,10 +38,13 @@ import { validateEnvironment } from './config/env.validation';
     LessonModule,
     QuestionModule,
     ProgressModule,
+    MasteryModule,
     LeaderboardModule,
     AchievementModule,
+    GamificationModule,
     NlpModule,
     CurriculumModule,
+    SutraModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import type { MathVerificationResult } from './interfaces/math-verification.interface';
 import { SendTutorMessageDto } from './dto/tutor-message.dto';
 import {
@@ -7,6 +7,7 @@ import {
   StructuredTutorResponseDto,
 } from './dto/tutor-response.dto';
 import { TutorMode } from './enums/tutor-mode.enum';
+import { TutorIntent } from './enums/tutor-intent.enum';
 import { StudentProfile } from './interfaces/student-profile.interface';
 import { TutorResponse } from './interfaces/tutor-response.interface';
 import { ConversationService } from './services/conversation.service';
@@ -22,9 +23,8 @@ import { RecommendationService } from './services/recommendation.service';
 import { StudyPlannerService } from './services/study-planner.service';
 import { TutorContextService } from './services/tutor-context.service';
 import { TutorNlpService } from './services/tutor-nlp.service';
+import { ImageAnalysisService, ImageAnalysisResult } from './services/image-analysis.service';
 import { StudentProfileBuilderService } from './student-profile-builder.service';
-import type { MathVerificationResult } from './interfaces/math-verification.interface';
-
 
 @Injectable()
 export class AiTutorService {
@@ -39,6 +39,7 @@ export class AiTutorService {
     private readonly promptService: PromptService,
     private readonly llmService: LlmService,
     private readonly guardrailService: GuardrailService,
+    private readonly imageAnalysisService: ImageAnalysisService,
     // Legacy services preserved for backward compatibility
     private readonly doubtSolverService: DoubtSolverService,
     private readonly mistakeAnalyzerService: MistakeAnalyzerService,
@@ -46,7 +47,7 @@ export class AiTutorService {
     private readonly recommendationService: RecommendationService,
     private readonly motivationService: MotivationService,
     private readonly profileBuilder: StudentProfileBuilderService,
-  ) { }
+  ) {}
 
   /**
    * Primary Production Pipeline:
@@ -71,34 +72,187 @@ export class AiTutorService {
       },
     );
 
-    // 2. Process student message with NLP understanding
-    const nlpResult = await this.tutorNlpService.process(dto.message, dto.mode);
+    // 2. Multimodal Image Analysis & Guardrail
+    let imageAnalysis: ImageAnalysisResult | null = null;
+    let inlineImage: { data: string; mimeType: string } | undefined = undefined;
+
+    if (dto.image && dto.image.data) {
+      const validated = this.imageAnalysisService.validateImage(dto.image);
+      inlineImage = { data: validated.cleanBase64, mimeType: validated.mimeType };
+
+      imageAnalysis = await this.imageAnalysisService.analyzeAndVerifyImage(
+        dto.image,
+        dto.message,
+      );
+
+      // Handle Image Domain Guardrail or Clarification redirection
+      if (imageAnalysis.guardrailResponse) {
+        await this.conversationService.addMessage(
+          conversation.id,
+          'user',
+          dto.message || 'Please analyze this mathematical problem image.',
+          {
+            attachmentType: 'image',
+            mimeType: validated.mimeType,
+            fileName: dto.image.fileName || 'problem.png',
+            imageAnalysis: imageAnalysis.understanding,
+          },
+        );
+        const assistantMsg = await this.conversationService.addMessage(
+          conversation.id,
+          'assistant',
+          imageAnalysis.guardrailResponse,
+          {
+            isGuardrailRedirect: imageAnalysis.isOffTopic,
+            requiresClarification: imageAnalysis.understanding.requiresClarification,
+            imageAnalysis: imageAnalysis.understanding,
+          },
+        );
+        return {
+          conversationId: conversation.id,
+          messageId: assistantMsg.id,
+          response: imageAnalysis.guardrailResponse,
+          mode: dto.mode || TutorMode.CONCEPT,
+          intent: TutorIntent.ASK_CONCEPT,
+          math: null,
+          sourceRefs: [
+            {
+              title: 'Vedic Mathematics Tutor Guardrail',
+              sutra: 'General Vedic Math',
+              technique: 'Domain & Image Verification',
+            },
+          ],
+          suggestedActions: [
+            'How does Nikhilam multiplication work?',
+            'Show me how to multiply 98 × 97 mentally',
+            'Explain Urdhva Tiryagbhyam sutra',
+          ],
+          imageUnderstanding: {
+            correlationId: imageAnalysis.understanding.correlationId,
+            isImageReadable: imageAnalysis.understanding.isImageReadable,
+            containsMathematics: imageAnalysis.understanding.containsMathematics,
+            detectedContentType: imageAnalysis.understanding.detectedContentType,
+            extractedText: imageAnalysis.understanding.extractedText,
+            mathematicalExpression: imageAnalysis.understanding.mathematicalExpression,
+            confidence: imageAnalysis.understanding.confidence,
+          },
+        };
+      }
+    } else {
+      // Check if user is referencing an image that wasn't attached
+      const refersToImage =
+        /\b(?:img|image|photo|picture|pic|screenshot)\b/i.test(dto.message) &&
+        /\b(?:look|see|check|explain|solve|view|analyze|read|go through|attached|in the)\b/i.test(dto.message);
+
+      if (refersToImage) {
+        const helpfulResponse =
+          "It looks like you're referring to an image, but no image file was attached to your message. Please click the **camera icon** (📷) in the input bar below to select and upload your photo or screenshot of the Vedic mathematics problem, and I will be delighted to analyze it step-by-step for you!";
+
+        await this.conversationService.addMessage(
+          conversation.id,
+          'user',
+          dto.message,
+          { intent: 'missing_image_attachment', mode: dto.mode || TutorMode.CONCEPT },
+        );
+        const assistantMsg = await this.conversationService.addMessage(
+          conversation.id,
+          'assistant',
+          helpfulResponse,
+          { isMissingImageGuidance: true },
+        );
+        return {
+          conversationId: conversation.id,
+          messageId: assistantMsg.id,
+          response: helpfulResponse,
+          mode: dto.mode || TutorMode.CONCEPT,
+          intent: TutorIntent.ASK_CONCEPT,
+          math: null,
+          sourceRefs: [
+            {
+              title: 'Vedic Mathematics Visual Tutor',
+              sutra: 'General Vedic Math',
+              technique: 'Multimodal Problem Solving',
+            },
+          ],
+          suggestedActions: [
+            'Click camera icon to upload problem photo',
+            'How does Nikhilam multiplication work?',
+            'Explain Urdhva Tiryagbhyam sutra',
+          ],
+        };
+      }
+
+      // Text-only Domain Guardrail Check
+      const domainCheck = this.guardrailService.isOffTopic(dto.message);
+      if (domainCheck.isOffTopic && domainCheck.redirectResponse) {
+        await this.conversationService.addMessage(
+          conversation.id,
+          'user',
+          dto.message,
+          { intent: 'off_topic', mode: dto.mode || TutorMode.CONCEPT },
+        );
+        const assistantMsg = await this.conversationService.addMessage(
+          conversation.id,
+          'assistant',
+          domainCheck.redirectResponse,
+          { isGuardrailRedirect: true },
+        );
+        return {
+          conversationId: conversation.id,
+          messageId: assistantMsg.id,
+          response: domainCheck.redirectResponse,
+          mode: dto.mode || TutorMode.CONCEPT,
+          intent: TutorIntent.ASK_CONCEPT,
+          math: null,
+          sourceRefs: [
+            {
+              title: 'Vedic Mathematics Curriculum Guide',
+              sutra: 'General Vedic Math',
+              technique: 'Domain Guardrail',
+            },
+          ],
+          suggestedActions: [
+            'How does Nikhilam multiplication work?',
+            'Show me how to multiply 98 × 97 mentally',
+            'Explain Urdhva Tiryagbhyam sutra',
+          ],
+        };
+      }
+    }
+
+    // 3. Process student message with NLP understanding
+    const nlpResult = await this.tutorNlpService.process(
+      dto.message || (imageAnalysis?.understanding.extractedText ?? ''),
+      dto.mode,
+    );
     const effectiveMode = dto.mode || nlpResult.recommendedMode;
 
-    // 3. Deterministic math evaluation / verification
+    // 4. Deterministic math evaluation / verification (prioritize verified image math)
     let mathVerification: MathVerificationResult | null = null;
-    if (nlpResult.mathExpression) {
+    if (imageAnalysis?.mathVerification) {
+      mathVerification = imageAnalysis.mathVerification;
+    } else if (nlpResult.mathExpression) {
       mathVerification = this.mathSolverService.verify(
         nlpResult.mathExpression,
         nlpResult.studentAnswer,
       );
     }
 
-    // 4. Retrieve bounded learner context
+    // 5. Retrieve bounded learner context
     const learnerContext = await this.tutorContextService.buildContext(
       userId,
-      dto.topicId,
+      dto.topicId || imageAnalysis?.matchedTopicId,
       dto.moduleId,
       dto.courseId,
       conversation.summary,
     );
 
-    // 5. Retrieve curriculum knowledge (RAG)
+    // 6. Retrieve curriculum knowledge (RAG)
     const knowledge = await this.knowledgeService.retrieveRelevant({
-      topicId: dto.topicId,
-      technique: nlpResult.technique,
-      sutra: nlpResult.sutra,
-      query: dto.message,
+      topicId: dto.topicId || imageAnalysis?.matchedTopicId,
+      technique: nlpResult.technique || imageAnalysis?.understanding.detectedTopic || undefined,
+      sutra: nlpResult.sutra || imageAnalysis?.understanding.detectedSutra || undefined,
+      query: dto.message || (imageAnalysis?.understanding.extractedText ?? ''),
     });
 
     // 6. Fetch recent conversation memory
@@ -107,39 +261,48 @@ export class AiTutorService {
       6,
     );
 
-    // 7. Persist user message to conversation memory
-    await this.conversationService.addMessage(
-      conversation.id,
-      'user',
-      dto.message,
-      {
-        intent: nlpResult.intent,
-        mode: effectiveMode,
-      },
-    );
-
-    // 8. Build structured prompt
+    // Build structured prompt with image understanding
     const promptRequest = this.promptService.buildPrompt({
-      studentMessage: dto.message,
+      studentMessage: dto.message || (imageAnalysis ? 'Please analyze this problem and provide the step-by-step Vedic solution.' : ''),
       nlp: nlpResult,
       mode: effectiveMode,
       context: learnerContext,
       knowledge,
       recentHistory,
       mathVerification,
+      inlineImage,
+      imageUnderstanding: imageAnalysis?.understanding,
     });
 
-    // 9. Invoke LLM provider via clean abstraction
+    // Invoke LLM provider via clean abstraction
     const llmResponse = await this.llmService.generateResponse(promptRequest);
 
-    // 10. Run response guardrails
+    // Run response guardrails
     const finalResponseText = this.guardrailService.applyGuardrails({
       rawResponse: llmResponse.content,
       mode: effectiveMode,
       mathVerification,
     });
 
-    // 11. Persist assistant message to conversation memory
+    const userMetadata: Record<string, any> = { intent: nlpResult.intent, mode: effectiveMode };
+    if (dto.image) {
+      userMetadata.attachmentType = 'image';
+      userMetadata.mimeType = dto.image.mimeType;
+      userMetadata.fileName = dto.image.fileName || 'problem.png';
+    }
+
+    await this.conversationService.addMessage(
+      conversation.id,
+      'user',
+      dto.message,
+      userMetadata,
+    );
+    await this.conversationService.setTitleFromMessage(
+      conversation.id,
+      dto.message,
+    );
+
+    // Persist assistant message to conversation memory
     const assistantMessage = await this.conversationService.addMessage(
       conversation.id,
       'assistant',
@@ -202,6 +365,17 @@ export class AiTutorService {
       math: mathFeedback,
       sourceRefs,
       suggestedActions,
+      imageUnderstanding: imageAnalysis?.understanding
+        ? {
+            correlationId: imageAnalysis.understanding.correlationId,
+            isImageReadable: imageAnalysis.understanding.isImageReadable,
+            containsMathematics: imageAnalysis.understanding.containsMathematics,
+            detectedContentType: imageAnalysis.understanding.detectedContentType,
+            extractedText: imageAnalysis.understanding.extractedText,
+            mathematicalExpression: imageAnalysis.understanding.mathematicalExpression,
+            confidence: imageAnalysis.understanding.confidence,
+          }
+        : null,
     };
   }
 

@@ -13,6 +13,7 @@ export interface LearningEntitySummary {
 export interface TutorContext {
   userId: number;
   userName?: string;
+  learningLevel?: string;
   currentCourse?: LearningEntitySummary | null;
   currentModule?: LearningEntitySummary | null;
   currentTopic?: LearningEntitySummary | null;

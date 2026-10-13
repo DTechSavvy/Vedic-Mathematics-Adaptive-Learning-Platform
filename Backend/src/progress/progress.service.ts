@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PracticeDifficultyService } from '../question/practice-difficulty.service';
+import { sutraPracticeMappings } from '../question/sutra-practice';
+import { MasteryService } from './mastery.service';
 
 @Injectable()
 export class ProgressService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly practiceDifficultyService: PracticeDifficultyService,
+    private readonly masteryService: MasteryService,
+  ) {}
 
   async getUserProgress(userId: number) {
     const attempts = await this.prisma.questionAttempt.findMany({
@@ -32,22 +39,29 @@ export class ProgressService {
       accuracy,
     };
   }
-  async getTopicProgress(userId: number) {
-    const progress = await this.prisma.userProgress.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        topic: true,
-      },
-    });
 
-    return progress.map((item) => ({
-      topic: item.topic.title,
-      mastery: item.mastery,
-      completed: item.completed,
+  async getTopicProgress(userId: number) {
+    const masteries = await this.masteryService.getAllTopicsMastery(userId);
+    return masteries.map((m) => ({
+      topicId: m.topicId,
+      topic: m.topicTitle,
+      courseTitle: m.courseTitle,
+      mastery: m.masteryScore,
+      completed: m.isMastered,
+      status: m.status,
+      contentCompletion: m.contentCompletion,
+      contentStatus: m.contentStatus,
+      validPracticeCount: m.validPracticeCount,
+      totalAttempts: m.totalAttempts,
+      correctAttempts: m.correctAttempts,
+      accuracy: m.accuracy,
+      recentAccuracy: m.recentAccuracy,
+      difficultyCoverage: m.difficultyCoverage,
+      isMastered: m.isMastered,
+      recommendedAction: m.recommendedAction,
     }));
   }
+
   async getRecommendation(userId: number) {
     const progress = await this.prisma.userProgress.findMany({
       where: {
@@ -71,12 +85,11 @@ export class ProgressService {
 
     return {
       weakTopic: weakestTopic.topic.title,
-
       mastery: weakestTopic.mastery,
-
       recommendation: `Practice ${weakestTopic.topic.title} before moving forward.`,
     };
   }
+
   async getSpeedAnalytics(userId: number) {
     const attempts = await this.prisma.questionAttempt.findMany({
       where: {
@@ -90,6 +103,7 @@ export class ProgressService {
     if (attempts.length === 0) {
       return {
         averageTime: 0,
+        averageSpeedSeconds: 0,
         fastestTime: 0,
         slowestTime: 0,
         totalAttempts: 0,
@@ -103,16 +117,17 @@ export class ProgressService {
     );
 
     const fastestTime = Math.min(...times);
-
     const slowestTime = Math.max(...times);
 
     return {
       averageTime,
+      averageSpeedSeconds: averageTime, // For frontend compatibility
       fastestTime,
       slowestTime,
       totalAttempts: attempts.length,
     };
   }
+
   async getSpeedImprovement(userId: number) {
     const attempts = await this.prisma.questionAttempt.findMany({
       where: {
@@ -133,7 +148,6 @@ export class ProgressService {
     }
 
     const firstFive = attempts.slice(0, 5);
-
     const lastFive = attempts.slice(-5);
 
     const firstAverage =
@@ -159,6 +173,7 @@ export class ProgressService {
       improvementPercent: Number(improvement),
     };
   }
+
   async getTopicAnalytics(userId: number) {
     const attempts = await this.prisma.questionAttempt.findMany({
       where: {
@@ -173,10 +188,20 @@ export class ProgressService {
       },
     });
 
-    const analyticsMap = new Map();
+    interface TopicAnalyticsRecord {
+      topicId: number;
+      topic: string;
+      questionsSolved: number;
+      correctAnswers: number;
+      totalTime: number;
+      timedAttempts: number;
+    }
+
+    const analyticsMap = new Map<number, TopicAnalyticsRecord>();
 
     for (const attempt of attempts) {
-      const topic = attempt.template.topic;
+      const topic = attempt.template?.topic;
+      if (!topic) continue;
 
       if (!analyticsMap.has(topic.id)) {
         analyticsMap.set(topic.id, {
@@ -190,6 +215,7 @@ export class ProgressService {
       }
 
       const data = analyticsMap.get(topic.id);
+      if (!data) continue;
 
       data.questionsSolved++;
 
@@ -199,7 +225,6 @@ export class ProgressService {
 
       if (attempt.timeTakenSeconds !== null) {
         data.totalTime += attempt.timeTakenSeconds;
-
         data.timedAttempts++;
       }
     }
@@ -225,6 +250,7 @@ export class ProgressService {
       };
     });
   }
+
   async getMentalAgility(userId: number) {
     const attempts = await this.prisma.questionAttempt.findMany({
       where: {
@@ -234,7 +260,12 @@ export class ProgressService {
 
     if (attempts.length === 0) {
       return {
+        score: 0,
         mentalAgilityScore: 0,
+        accuracy: 0,
+        averageTime: 0,
+        averageSpeedSeconds: 0,
+        speedScore: 0,
       };
     }
 
@@ -263,8 +294,126 @@ export class ProgressService {
     return {
       accuracy: Number(accuracy.toFixed(2)),
       averageTime: Number(averageTime.toFixed(2)),
+      averageSpeedSeconds: Number(averageTime.toFixed(2)),
       speedScore: Number(speedScore.toFixed(2)),
       mentalAgilityScore,
+      score: mentalAgilityScore, // For frontend compatibility
+    };
+  }
+
+  async getSutraProgress(userId: number) {
+    const sutraMasteries =
+      await this.masteryService.getAllSutrasMastery(userId);
+    return sutraMasteries.map((s) => ({
+      sutraId: s.sutraId,
+      sutraName: s.sutraName,
+      sanskritName: s.sanskritName,
+      englishMeaning: s.englishMeaning,
+      attemptsCount: s.totalAttempts,
+      correctCount: s.correctAttempts,
+      accuracy: s.accuracy,
+      recentAccuracy: s.recentAccuracy,
+      mastery: s.masteryScore,
+      status: s.status,
+      isMastered: s.isMastered,
+      difficultyCoverage: s.difficultyCoverage,
+      recommendedAction: s.recommendedAction,
+    }));
+  }
+
+  async getDifficultyProgress(userId: number) {
+    const attempts = await this.prisma.questionAttempt.findMany({
+      where: { userId },
+      include: {
+        template: true,
+      },
+    });
+
+    const difficultyAccess =
+      await this.practiceDifficultyService.getDifficultyAccess(userId);
+
+    const tiers = ['EASY', 'MEDIUM', 'ADVANCED', 'EXPERT'] as const;
+
+    const result: Record<string, unknown> = {};
+
+    for (const tier of tiers) {
+      const tierAttempts = attempts.filter((att) => {
+        const tDiff = att.template?.difficulty;
+        if (tier === 'EASY' && tDiff === 'EASY') return true;
+        if (tier === 'MEDIUM' && tDiff === 'MEDIUM') return true;
+        if ((tier === 'ADVANCED' || tier === 'EXPERT') && tDiff === 'HARD')
+          return true;
+        return false;
+      });
+
+      const totalAttempts = tierAttempts.length;
+      const correctAttempts = tierAttempts.filter((a) => a.isCorrect).length;
+      const accuracy =
+        totalAttempts === 0
+          ? 0
+          : Math.round((correctAttempts / totalAttempts) * 100);
+
+      const accessItem = difficultyAccess.access.find(
+        (a) => a.difficulty === tier,
+      );
+
+      result[tier] = {
+        difficulty: tier,
+        totalAttempts,
+        correctAttempts,
+        accuracy,
+        unlocked: accessItem ? accessItem.unlocked : false,
+        available: accessItem ? accessItem.available : false,
+        reason: accessItem ? accessItem.reason : undefined,
+      };
+    }
+
+    return result;
+  }
+
+  async getOverview(userId: number) {
+    const overview = await this.getUserProgress(userId);
+    const topics = await this.getTopicProgress(userId);
+    const sutras = await this.getSutraProgress(userId);
+    const difficulty = await this.getDifficultyProgress(userId);
+    const speed = await this.getSpeedAnalytics(userId);
+    const mentalAgility = await this.getMentalAgility(userId);
+    const recommendation = await this.getRecommendation(userId);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        xp: true,
+        level: true,
+        streak: true,
+        coins: true,
+        stars: true,
+        wisdomStones: true,
+      },
+    });
+
+    return {
+      user,
+      overview,
+      recommendation,
+      topics: {
+        total: topics.length,
+        mastered: topics.filter((t) => t.isMastered).length,
+        developing: topics.filter((t) => t.status === 'DEVELOPING').length,
+        practicing: topics.filter((t) => t.status === 'PRACTICING').length,
+        items: topics,
+      },
+      sutras: {
+        total: sutras.length,
+        mastered: sutras.filter((s) => s.isMastered).length,
+        items: sutras,
+      },
+      difficulty,
+      speed,
+      mentalAgility,
     };
   }
 }

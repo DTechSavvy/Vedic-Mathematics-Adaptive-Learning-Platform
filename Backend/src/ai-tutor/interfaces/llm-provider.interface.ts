@@ -1,6 +1,10 @@
 export interface LlmRequest {
   systemPrompt: string;
   userPrompt: string;
+  inlineImage?: {
+    data: string;
+    mimeType: string;
+  };
   temperature?: number;
   maxTokens?: number;
 }

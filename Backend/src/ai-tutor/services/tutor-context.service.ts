@@ -26,7 +26,7 @@ export class TutorContextService {
       // 1. Fetch user basic profile
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true },
+        select: { id: true, name: true, learningLevel: true },
       });
 
       // 2. Fetch target curriculum entities if specified
@@ -132,6 +132,7 @@ export class TutorContextService {
       return {
         userId,
         userName: user?.name || 'Student',
+        learningLevel: user?.learningLevel || 'BEGINNER',
         currentCourse,
         currentModule,
         currentTopic,

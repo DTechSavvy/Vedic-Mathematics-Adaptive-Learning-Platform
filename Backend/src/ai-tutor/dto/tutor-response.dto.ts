@@ -15,6 +15,16 @@ export interface SourceReference {
   source?: string | null;
 }
 
+export interface ImageUnderstandingFeedback {
+  correlationId: string;
+  isImageReadable: boolean;
+  containsMathematics: boolean;
+  detectedContentType: string;
+  extractedText: string;
+  mathematicalExpression?: string | null;
+  confidence: string;
+}
+
 export class StructuredTutorResponseDto {
   conversationId!: string;
   messageId!: string;
@@ -24,4 +34,5 @@ export class StructuredTutorResponseDto {
   math?: MathFeedback | null;
   sourceRefs!: SourceReference[];
   suggestedActions!: string[];
+  imageUnderstanding?: ImageUnderstandingFeedback | null;
 }

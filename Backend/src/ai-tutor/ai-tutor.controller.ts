@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -8,8 +9,11 @@ import {
   Post,
   Query,
   Request,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AiTutorService } from './ai-tutor.service';
 import { SendTutorMessageDto } from './dto/tutor-message.dto';
@@ -17,7 +21,8 @@ import { StructuredTutorResponseDto } from './dto/tutor-response.dto';
 import type { StudentProfile } from './interfaces/student-profile.interface';
 import type { TutorResponse } from './interfaces/tutor-response.interface';
 import { ConversationService } from './services/conversation.service';
-
+import { SttService } from './services/stt.service';
+import { SuggestionsService } from './services/suggestions.service';
 
 import { AiRateLimitGuard } from './guards/ai-rate-limit.guard';
 
@@ -27,7 +32,9 @@ export class AiTutorController {
   constructor(
     private readonly aiTutorService: AiTutorService,
     private readonly conversationService: ConversationService,
-  ) { }
+    private readonly sttService: SttService,
+    private readonly suggestionsService: SuggestionsService,
+  ) {}
 
   /**
    * Primary Production Endpoint: Process an interactive student tutor message
@@ -40,6 +47,23 @@ export class AiTutorController {
     @Body() dto: SendTutorMessageDto,
   ): Promise<StructuredTutorResponseDto> {
     return this.aiTutorService.processMessage(req.user.userId, dto);
+  }
+
+  /**
+   * Voice STT Transcription Endpoint: Converts recorded audio input to text
+   */
+  @Post('voice/transcribe')
+  @UseInterceptors(FileInterceptor('audio'))
+  async transcribeVoice(@UploadedFile() file: any) {
+    return this.sttService.transcribeAudio(file);
+  }
+
+  /**
+   * Pedagogical Suggestions Endpoint: Deterministic smart prompts based on state & history
+   */
+  @Get('suggestions')
+  async getSuggestions(@Request() req: any) {
+    return this.suggestionsService.generateSuggestions(req.user.userId);
   }
 
   /**
@@ -63,6 +87,28 @@ export class AiTutorController {
       conversationId,
       req.user.userId,
     );
+  }
+
+  /**
+   * Delete a specific conversation belonging to the authenticated student
+   */
+  @Delete('conversations/:id')
+  async deleteConversation(
+    @Request() req: any,
+    @Param('id') conversationId: string,
+  ) {
+    return this.conversationService.deleteConversation(
+      conversationId,
+      req.user.userId,
+    );
+  }
+
+  /**
+   * Clear all conversations belonging to the authenticated student
+   */
+  @Delete('conversations')
+  async clearAllConversations(@Request() req: any) {
+    return this.conversationService.clearAllConversations(req.user.userId);
   }
 
   // ==========================================

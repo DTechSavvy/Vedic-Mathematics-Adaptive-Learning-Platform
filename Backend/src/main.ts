@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -11,8 +12,11 @@ async function bootstrap() {
   const port = Number(configService.get<number>('PORT', 3000));
   const clientUrl = configService.get<string>(
     'CLIENT_URL',
-    'http://localhost:5173',
+    'http://localhost:8080',
   );
+
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   app.use(
     helmet({
@@ -22,7 +26,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: clientUrl,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -40,4 +44,4 @@ async function bootstrap() {
   await app.listen(port);
 }
 
-bootstrap();
+void bootstrap();

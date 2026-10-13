@@ -39,9 +39,17 @@ export class UsersService {
     password: string;
     googleId?: string | null;
     authProvider?: string;
+    learningLevel?: string;
   }) {
     return this.prisma.user.create({
       data,
+    });
+  }
+
+  async updatePassword(userId: number, password: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password },
     });
   }
 }

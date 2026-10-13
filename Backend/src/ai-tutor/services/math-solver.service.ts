@@ -171,7 +171,7 @@ export class MathSolverService {
 class SafeParser {
   private pos = 0;
 
-  constructor(private readonly tokens: Token[]) { }
+  constructor(private readonly tokens: Token[]) {}
 
   parse(): number {
     const result = this.parseExpression();

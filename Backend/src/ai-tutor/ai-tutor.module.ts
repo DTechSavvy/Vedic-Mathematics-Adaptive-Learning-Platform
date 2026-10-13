@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { NlpModule } from '../nlp/nlp.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { MasteryModule } from '../progress/mastery.module';
 import { AiTutorController } from './ai-tutor.controller';
 import { AiTutorService } from './ai-tutor.service';
 import { GeminiProvider } from './providers/gemini.provider';
@@ -18,12 +19,15 @@ import { RecommendationService } from './services/recommendation.service';
 import { StudyPlannerService } from './services/study-planner.service';
 import { TutorContextService } from './services/tutor-context.service';
 import { TutorNlpService } from './services/tutor-nlp.service';
+import { SttService } from './services/stt.service';
+import { SuggestionsService } from './services/suggestions.service';
+import { ImageAnalysisService } from './services/image-analysis.service';
 import { StudentProfileBuilderService } from './student-profile-builder.service';
 
 import { AiRateLimitGuard } from './guards/ai-rate-limit.guard';
 
 @Module({
-  imports: [PrismaModule, NlpModule, ConfigModule],
+  imports: [PrismaModule, NlpModule, ConfigModule, MasteryModule],
   controllers: [AiTutorController],
   providers: [
     AiTutorService,
@@ -37,6 +41,9 @@ import { AiRateLimitGuard } from './guards/ai-rate-limit.guard';
     LlmService,
     GeminiProvider,
     GuardrailService,
+    ImageAnalysisService,
+    SttService,
+    SuggestionsService,
     // Legacy support services
     StudentProfileBuilderService,
     DoubtSolverService,
@@ -50,6 +57,9 @@ import { AiRateLimitGuard } from './guards/ai-rate-limit.guard';
     ConversationService,
     KnowledgeService,
     MathSolverService,
+    ImageAnalysisService,
+    SttService,
+    SuggestionsService,
   ],
 })
 export class AiTutorModule {}

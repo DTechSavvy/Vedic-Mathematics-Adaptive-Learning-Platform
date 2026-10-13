@@ -13,6 +13,11 @@ export interface MessageMetadata {
   latencyMs?: number;
   modelName?: string;
   providerName?: string;
+  isGuardrailRedirect?: boolean;
+  attachmentType?: string;
+  mimeType?: string;
+  fileName?: string;
+  [key: string]: any;
 }
 
 @Injectable()
@@ -105,6 +110,19 @@ export class ConversationService {
     }
   }
 
+  async setTitleFromMessage(conversationId: string, message: string) {
+    const title = message.trim().replace(/\s+/g, ' ').slice(0, 96);
+    if (!title) return;
+
+    await (this.prisma as any).tutorConversation.updateMany({
+      where: {
+        id: conversationId,
+        OR: [{ title: null }, { title: 'Vedic Mathematics Session' }],
+      },
+      data: { title },
+    });
+  }
+
   /**
    * Retrieve bounded recent conversation history for LLM prompt context
    */
@@ -180,4 +198,62 @@ export class ConversationService {
 
     return conversation;
   }
+
+  /**
+   * Delete a specific conversation and all its messages, enforcing strict user ownership
+   */
+  async deleteConversation(conversationId: string, userId: number) {
+    const conversation = await (
+      this.prisma as any
+    ).tutorConversation.findUnique({
+      where: { id: conversationId },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException(`Conversation ${conversationId} not found.`);
+    }
+
+    if (conversation.userId !== userId) {
+      throw new ForbiddenException(
+        'Access denied: You do not own this conversation.',
+      );
+    }
+
+    // Cascade delete messages first, then the conversation
+    await (this.prisma as any).tutorMessage.deleteMany({
+      where: { conversationId },
+    });
+
+    await (this.prisma as any).tutorConversation.delete({
+      where: { id: conversationId },
+    });
+
+    this.logger.log(`Deleted conversation ${conversationId} for user ${userId}`);
+    return { success: true, message: 'Conversation deleted successfully' };
+  }
+
+  /**
+   * Clear all conversations and messages for the authenticated user
+   */
+  async clearAllConversations(userId: number) {
+    const userConvs = await (this.prisma as any).tutorConversation.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+
+    const convIds = userConvs.map((c: any) => c.id);
+    if (convIds.length > 0) {
+      await (this.prisma as any).tutorMessage.deleteMany({
+        where: { conversationId: { in: convIds } },
+      });
+
+      await (this.prisma as any).tutorConversation.deleteMany({
+        where: { id: { in: convIds } },
+      });
+    }
+
+    this.logger.log(`Cleared ${convIds.length} conversations for user ${userId}`);
+    return { success: true, count: convIds.length, message: 'All conversations cleared' };
+  }
 }
+

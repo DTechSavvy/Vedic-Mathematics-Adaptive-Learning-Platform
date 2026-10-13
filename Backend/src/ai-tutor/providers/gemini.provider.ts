@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
   AiProviderErrorException,
   AiProviderTimeoutException,
@@ -15,35 +16,34 @@ import {
 export class GeminiProvider implements LlmProvider {
   readonly providerName = 'GoogleGemini';
   private readonly logger = new Logger(GeminiProvider.name);
-  private client: any = null;
+  private client: GoogleGenerativeAI | null = null;
   private readonly apiKey: string | undefined;
   private readonly modelName: string;
   private readonly timeoutMs: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const rawKey = this.configService.get<string>('GEMINI_API_KEY');
+    this.apiKey = rawKey ? rawKey.trim() : undefined;
     this.modelName =
-      this.configService.get<string>('AI_MODEL_NAME') || 'gemini-3.7-flash';
+      this.configService.get<string>('AI_MODEL_NAME') || 'gemini-2.5-flash';
     this.timeoutMs =
       Number(this.configService.get<number>('AI_PROVIDER_TIMEOUT_MS')) || 30000;
 
     // Graceful initialization: Never crash server startup if key is missing!
     if (
       this.apiKey &&
-      this.apiKey.trim() !== '' &&
+      this.apiKey !== '' &&
       !this.apiKey.includes('your-gemini-api-key')
     ) {
       try {
-        // Dynamic or safe import
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
         this.client = new GoogleGenerativeAI(this.apiKey);
         this.logger.log(
           `GeminiProvider initialized with model: ${this.modelName}`,
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         this.logger.warn(
-          `Failed to instantiate GoogleGenerativeAI SDK: ${err.message}`,
+          `Failed to instantiate GoogleGenerativeAI SDK: ${message}`,
         );
         this.client = null;
       }
@@ -79,6 +79,12 @@ export class GeminiProvider implements LlmProvider {
     startTime: number,
     retriesLeft: number,
   ): Promise<LlmResponse> {
+    if (!this.client) {
+      throw new AiProviderUnavailableException(
+        'Gemini client is not initialized',
+      );
+    }
+
     try {
       const model = this.client.getGenerativeModel({
         model: this.modelName,
@@ -97,8 +103,19 @@ export class GeminiProvider implements LlmProvider {
         );
       });
 
+      const parts: any[] = [];
+      if (request.inlineImage) {
+        parts.push({
+          inlineData: {
+            data: request.inlineImage.data,
+            mimeType: request.inlineImage.mimeType,
+          },
+        });
+      }
+      parts.push({ text: request.userPrompt });
+
       const generatePromise = model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: request.userPrompt }] }],
+        contents: [{ role: 'user', parts }],
         generationConfig: {
           temperature: request.temperature ?? 0.3,
           maxOutputTokens: request.maxTokens ?? 1500,
@@ -115,28 +132,51 @@ export class GeminiProvider implements LlmProvider {
         modelName: this.modelName,
         latencyMs,
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof AiProviderTimeoutException) {
         throw err;
       }
 
-      // Check if retryable (e.g. rate limit 429, service unavailable 503)
+      const errorObj = err as Record<string, unknown> | null;
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : typeof errorObj?.message === 'string'
+            ? errorObj.message
+            : 'Unknown Gemini error';
+      const status =
+        typeof errorObj?.status === 'number' ? errorObj.status : undefined;
+      const errorName =
+        typeof errorObj?.name === 'string' ? errorObj.name : 'unknown';
+
+      const isNetworkFailure =
+        errorName === 'TypeError' ||
+        /fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i.test(
+          errorMessage,
+        );
       const isRetryable =
         retriesLeft > 0 &&
-        (err.status === 429 ||
-          err.status === 503 ||
-          err.message?.includes('429') ||
-          err.message?.includes('503'));
+        (isNetworkFailure ||
+          status === 429 ||
+          status === 503 ||
+          (status !== undefined && status >= 500) ||
+          errorMessage.includes('429') ||
+          errorMessage.includes('503'));
 
       if (isRetryable) {
         this.logger.warn(
-          `Retrying Gemini request after transient error: ${err.message}`,
+          `Retrying Gemini request after transient error: ${errorMessage}`,
         );
-        await new Promise((res) => setTimeout(res, 1000));
+        await new Promise((res) =>
+          setTimeout(res, retriesLeft === 1 ? 500 : 1000),
+        );
         return this.executeWithRetry(request, startTime, retriesLeft - 1);
       }
 
-      this.logger.error(`Gemini provider error: ${err.message}`, err.stack);
+      this.logger.error(
+        `Gemini provider error [${status || errorName}]: ${errorMessage}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       throw new AiProviderErrorException(
         'The AI Tutor could not generate a response. Please try again shortly.',
       );

@@ -19,7 +19,7 @@ export class KnowledgeService {
   >();
   private readonly CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache for stable curriculum data
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Main knowledge retrieval method based on context and extracted NLP entities

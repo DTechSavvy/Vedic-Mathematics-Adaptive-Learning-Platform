@@ -29,7 +29,23 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], //GoogleStrategy, GoogleAuthGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    GoogleAuthGuard,
+    {
+      provide: GoogleStrategy,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const clientId = configService.get<string>('GOOGLE_CLIENT_ID');
+        const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+
+        return clientId && clientSecret
+          ? new GoogleStrategy(configService)
+          : undefined;
+      },
+    },
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

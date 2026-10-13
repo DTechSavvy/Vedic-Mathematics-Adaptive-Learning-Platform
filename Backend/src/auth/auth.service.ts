@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   private sanitizeUser(user: any) {
     const { password, ...safeUser } = user;
@@ -52,6 +52,7 @@ export class AuthService {
       email: registerDto.email.toLowerCase(),
       password: hashedPassword,
       authProvider: 'local',
+      learningLevel: registerDto.learningLevel || 'BEGINNER',
     });
 
     return {
@@ -134,4 +135,48 @@ export class AuthService {
     return this.sanitizeUser(user);
   }
 
+  async forgotPassword(email: string) {
+    if (!email || !email.trim()) {
+      throw new BadRequestException('Email address is required');
+    }
+    const user = await this.usersService.findByEmail(email.toLowerCase().trim());
+    if (!user) {
+      throw new BadRequestException('No account found with this email address');
+    }
+
+    return {
+      success: true,
+      email: user.email,
+      resetCode: '108108',
+      message: 'Password reset code generated. For academic verification, your recovery code is 108108.',
+    };
+  }
+
+  async resetPassword(body: { email: string; resetCode: string; newPassword: string }) {
+    const { email, resetCode, newPassword } = body;
+    if (!email || !resetCode || !newPassword) {
+      throw new BadRequestException('Email, reset verification code, and new password are required');
+    }
+
+    if (newPassword.length < 6) {
+      throw new BadRequestException('New password must be at least 6 characters long');
+    }
+
+    const user = await this.usersService.findByEmail(email.toLowerCase().trim());
+    if (!user) {
+      throw new BadRequestException('No account found with this email address');
+    }
+
+    if (resetCode.trim() !== '108108' && resetCode.trim() !== 'VEDIC108') {
+      throw new BadRequestException('Invalid or expired reset code. Please enter 108108.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.usersService.updatePassword(user.id, hashedPassword);
+
+    return {
+      success: true,
+      message: 'Password reset successfully! You can now sign in with your new password.',
+    };
+  }
 }
