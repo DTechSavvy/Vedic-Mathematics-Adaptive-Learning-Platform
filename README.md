@@ -1,4 +1,4 @@
-# 🕉️ VedicMind (Dwanda)
+# 🕉️ VedicMind
 ### Adaptive Learning Platform & Multimodal AI Tutor for Vedic Mathematics
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -349,3 +349,5 @@ Contributions, issue reports, and feature requests are welcome!
 5. Open a Pull Request.
 
 This project is licensed under the **MIT License**.
+
+#### Devloped by Noel Tony, Suyash Nair, Saad Feroz Dandekar, Yash Shetty
